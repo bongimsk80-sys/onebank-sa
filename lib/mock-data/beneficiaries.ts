@@ -1,0 +1,151 @@
+export type Beneficiary = {
+  id: string;
+  name: string;
+  type: "local" | "international" | "wallet";
+  category: "vendor" | "supplier" | "employee" | "government" | "utility";
+  status: "active" | "pending" | "disabled";
+  accountNumber: string;
+  bank: string;
+  branchCode: string;
+  totalPayments: number;
+  lastPayment: number;
+  lastPaymentDate: string;
+  tag: string;
+};
+
+export const mockBeneficiaries: Beneficiary[] = [
+  {
+    id: "b1",
+    name: "Eskom Holdings",
+    type: "local",
+    category: "utility",
+    status: "active",
+    accountNumber: "1009001234008490",
+    bank: "FNB",
+    branchCode: "250655",
+    totalPayments: 560,
+    lastPayment: 45000,
+    lastPaymentDate: "2024-03-26",
+    tag: "Utilities",
+  },
+  {
+    id: "b2",
+    name: "BuildRight Suppliers",
+    type: "local",
+    category: "supplier",
+    status: "active",
+    accountNumber: "1009005678008490",
+    bank: "Standard Bank",
+    branchCode: "051001",
+    totalPayments: 340,
+    lastPayment: 67000,
+    lastPaymentDate: "2024-03-25",
+    tag: "Construction",
+  },
+  {
+    id: "b3",
+    name: "Sasol Limited",
+    type: "local",
+    category: "supplier",
+    status: "active",
+    accountNumber: "1009009012008490",
+    bank: "Absa",
+    branchCode: "632005",
+    totalPayments: 241,
+    lastPayment: 112000,
+    lastPaymentDate: "2024-03-25",
+    tag: "Fuel & Chemicals",
+  },
+  {
+    id: "b4",
+    name: "HSBC London",
+    type: "international",
+    category: "vendor",
+    status: "active",
+    accountNumber: "GB29NWBK60161331926819",
+    bank: "HSBC",
+    branchCode: "MIDLGB22",
+    totalPayments: 45,
+    lastPayment: 250000,
+    lastPaymentDate: "2024-03-24",
+    tag: "International",
+  },
+  {
+    id: "b5",
+    name: "City of Joburg",
+    type: "local",
+    category: "government",
+    status: "active",
+    accountNumber: "1009003456008490",
+    bank: "Nedbank",
+    branchCode: "198765",
+    totalPayments: 241,
+    lastPayment: 8900,
+    lastPaymentDate: "2024-03-24",
+    tag: "Municipal",
+  },
+  {
+    id: "b6",
+    name: "Office Rentals SA",
+    type: "local",
+    category: "vendor",
+    status: "active",
+    accountNumber: "1009007890008490",
+    bank: "Absa",
+    branchCode: "632005",
+    totalPayments: 241,
+    lastPayment: 28500,
+    lastPaymentDate: "2024-03-23",
+    tag: "Property",
+  },
+  {
+    id: "b7",
+    name: "Telkom SA",
+    type: "local",
+    category: "utility",
+    status: "active",
+    accountNumber: "1009002345008490",
+    bank: "Nedbank",
+    branchCode: "198765",
+    totalPayments: 180,
+    lastPayment: 3200,
+    lastPaymentDate: "2024-03-23",
+    tag: "Telecoms",
+  },
+  {
+    id: "b8",
+    name: "MTN Business",
+    type: "local",
+    category: "utility",
+    status: "pending",
+    accountNumber: "1009006789008490",
+    bank: "Capitec",
+    branchCode: "470010",
+    totalPayments: 95,
+    lastPayment: 4800,
+    lastPaymentDate: "2024-03-22",
+    tag: "Telecoms",
+  },
+  {
+    id: "b9",
+    name: "SARS",
+    type: "local",
+    category: "government",
+    status: "active",
+    accountNumber: "1009004567008490",
+    bank: "FNB",
+    branchCode: "250655",
+    totalPayments: 120,
+    lastPayment: 18750,
+    lastPaymentDate: "2024-03-24",
+    tag: "Tax",
+  },
+];
+
+export const categoryIcons: Record<string, string> = {
+  vendor: "🏢",
+  supplier: "📦",
+  employee: "👤",
+  government: "🏛️",
+  utility: "⚡",
+};

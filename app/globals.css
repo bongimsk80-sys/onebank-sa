@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-primary: #1B4332;
+    --color-accent: #D4A017;
+    --bg: #F4F6F8;
+    --surface: #FFFFFF;
+    --border: #E2E8F0;
+    --text: #1A202C;
+    --text-secondary: #718096;
+    --text-muted: #A0AEC0;
+  }
+
+  .dark {
+    --bg: #0F1117;
+    --surface: #1A1D27;
+    --border: #2D3748;
+    --text: #F7FAFC;
+    --text-secondary: #A0AEC0;
+    --text-muted: #718096;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Force all common text colors to respect dark mode */
+  .dark p,
+  .dark h1,
+  .dark h2,
+  .dark h3,
+  .dark h4,
+  .dark h5,
+  .dark h6,
+  .dark span,
+  .dark label,
+  .dark button {
+    color: inherit;
+  }
+
+  /* Dark mode text overrides for hardcoded Tailwind colors */
+  .dark [class*="text-\[#1A202C\]"],
+  .dark [class*="text-\[#1a202c\]"] {
+    color: var(--text) !important;
+  }
+
+  .dark [class*="text-\[#718096\]"] {
+    color: var(--text-secondary) !important;
+  }
+
+  .dark [class*="text-\[#A0AEC0\]"],
+  .dark [class*="text-\[#a0aec0\]"] {
+    color: var(--text-muted) !important;
+  }
+
+  /* Dark mode background overrides */
+  .dark [class*="bg-white"] {
+    background-color: var(--surface) !important;
+  }
+
+  .dark [class*="bg-\[#F4F6F8\]"],
+  .dark [class*="bg-\[#f4f6f8\]"] {
+    background-color: #1E2130 !important;
+  }
+
+  .dark [class*="bg-\[#E2E8F0\]"] {
+    background-color: #2D3748 !important;
+  }
+
+  /* Dark mode border overrides */
+  .dark [class*="border-\[#E2E8F0\]"] {
+    border-color: var(--border) !important;
+  }
+
+  /* Dark mode input overrides */
+  .dark input,
+  .dark select,
+  .dark textarea {
+    background-color: #1E2130 !important;
+    color: var(--text) !important;
+    border-color: var(--border) !important;
+  }
+
+  /* Dark mode divide overrides */
+  .dark [class*="divide-\[#E2E8F0\]"] > * + * {
+    border-color: var(--border) !important;
+  }
+
+  /* Dark mode hover overrides */
+  .dark [class*="hover:bg-\[#F4F6F8\]"]:hover {
+    background-color: #1E2130 !important;
+  }
+
+  /* Settings labels */
+  .dark [class*="text-\[#2D3748\]"] {
+    color: var(--text) !important;
+  }
+}

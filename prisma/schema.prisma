@@ -1,0 +1,189 @@
+model ActivityLog {
+  id          String   @id @default(cuid())
+  action      String
+  description String
+  userId      String?
+  userName    String?
+  entityType  String?
+  entityId    String?
+  ipAddress   String?
+  status      String   @default("success")
+  createdAt   DateTime @default(now())
+
+  @@map("activity_logs")
+}
+model Feedback {
+  id         String   @id @default(cuid())
+  rating     Int
+  categories String   @default("[]")
+  message    String?
+  page       String?
+  userName   String?
+  userRole   String?
+  createdAt  DateTime @default(now())
+
+  @@map("feedback")
+}
+model ApprovalWorkflow {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  minAmount   Float    @default(0)
+  maxAmount   Float    @default(999999999)
+  steps       String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("approval_workflows")
+}
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("viewer")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model BankAccount {
+  id            String   @id @default(cuid())
+  bank          String
+  accountNumber String
+  accountType   String
+  balance       Float    @default(0)
+  currency      String   @default("ZAR")
+  color         String
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  transactions  Transaction[]
+
+  @@map("bank_accounts")
+}
+
+model Transaction {
+  id            String      @id @default(cuid())
+  name          String
+  type          String
+  amount        Float
+  date          DateTime    @default(now())
+  bank          String
+  accountNumber String
+  reference     String
+  status        String      @default("completed")
+  bankAccount   BankAccount? @relation(fields: [bankAccountId], references: [id])
+  bankAccountId String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@map("transactions")
+}
+
+model Payment {
+  id          String   @id @default(cuid())
+  beneficiary String
+  bank        String
+  amount      Float
+  type        String
+  status      String   @default("pending")
+  initiatedBy String
+  date        DateTime @default(now())
+  reference   String
+  description String
+  priority    Boolean  @default(false)
+  scheduledDate DateTime?
+  isScheduled   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("payments")
+}
+
+model Beneficiary {
+  id              String    @id @default(cuid())
+  name            String
+  type            String
+  category        String
+  status          String    @default("active")
+  accountNumber   String
+  bank            String
+  branchCode      String
+  totalPayments   Int       @default(0)
+  lastPayment     Float     @default(0)
+  lastPaymentDate DateTime?
+  tag             String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("beneficiaries")
+}
+
+model ErpConnection {
+  id           String   @id @default(cuid())
+  name         String
+  provider     String
+  status       String   @default("disconnected")
+  apiKey       String?
+  apiUrl       String?
+  lastSyncedAt DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("erp_connections")
+}
+
+model ErpInvoice {
+  id            String   @id @default(cuid())
+  erpProvider   String
+  invoiceNumber String
+  vendor        String
+  amount        Float
+  dueDate       DateTime
+  status        String   @default("pending")
+  paymentId     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("erp_invoices")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  title     String
+  message   String
+  type      String   @default("info")
+  read      Boolean  @default(false)
+  userId    String?
+  link      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("notifications")
+}
+
+model TransferLimit {
+  id           String   @id @default(cuid())
+  role         String   @unique
+  dailyLimit   Float    @default(0)
+  perTxLimit   Float    @default(0)
+  monthlyLimit Float    @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("transfer_limits")
+}
