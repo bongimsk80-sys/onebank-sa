@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { Card } from "@/components/ui/card";
 import { useSessionStore } from "@/store/session-store";
 import {
@@ -58,7 +59,7 @@ const settingsGroups = [
 export default function SettingsPage() {
   const router = useRouter();
   const [darkMode, setDarkMode] = useState(false);
-  const { name, email, role } = useSessionStore();
+  const { name, email, role, clearSession } = useSessionStore();
 
   return (
     <div className="max-w-2xl mx-auto space-y-5">
@@ -135,7 +136,13 @@ export default function SettingsPage() {
       </Card>
 
       {/* Logout */}
-      <button className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border border-[#FFF1F2] bg-white text-[#C0392B] font-semibold text-sm hover:bg-[#FFF1F2] transition-colors">
+      <button
+        onClick={() => {
+          clearSession();
+          signOut({ callbackUrl: "/login" });
+        }}
+        className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border border-[#FFF1F2] bg-white text-[#C0392B] font-semibold text-sm hover:bg-[#FFF1F2] transition-colors"
+      >
         <LogOut size={16} />
         Sign Out
       </button>
