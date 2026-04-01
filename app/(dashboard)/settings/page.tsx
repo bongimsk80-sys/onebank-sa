@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
+import { useSessionStore } from "@/store/session-store";
 import {
   ChevronRight,
   User,
@@ -57,6 +58,7 @@ const settingsGroups = [
 export default function SettingsPage() {
   const router = useRouter();
   const [darkMode, setDarkMode] = useState(false);
+  const { name, email, role } = useSessionStore();
 
   return (
     <div className="max-w-2xl mx-auto space-y-5">
@@ -65,17 +67,19 @@ export default function SettingsPage() {
       <Card className="p-4 rounded-xl border border-[#E2E8F0] bg-white shadow-sm">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-full bg-[#1B4332] flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-            BM
+            {name
+              ? name.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase()
+              : "U"}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-base font-bold text-[#1A202C]">
-              Bonginkosi Masuku
+              {name ?? "User"}
             </p>
             <p className="text-sm text-[#718096] truncate">
-              bonginkosi@onebank.co.za
+              {email ?? ""}
             </p>
             <span className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-lg bg-[#F0FDF4] text-[#27AE60]">
-              Admin
+              {role ?? "viewer"}
             </span>
           </div>
           <ChevronRight size={16} className="text-[#A0AEC0] flex-shrink-0" />
