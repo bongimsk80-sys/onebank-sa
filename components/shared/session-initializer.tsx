@@ -2,24 +2,25 @@
 
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { rolePermissions, useSessionStore } from "@/store/session-store";
+import { useSessionStore } from "@/store/session-store";
 
 export default function SessionInitializer() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const setSession = useSessionStore((s) => s.setSession);
   const clearSession = useSessionStore((s) => s.clearSession);
 
   useEffect(() => {
-    if (session?.user) {
+    if (status === "authenticated" && session?.user) {
+      const user = session.user as any;
       setSession(
-        (session.user as any).role,
-        session.user.name ?? "",
-        session.user.email ?? ""
+        user.role,
+        user.name ?? "",
+        user.email ?? ""
       );
-    } else {
+    } else if (status === "unauthenticated") {
       clearSession();
     }
-  }, [session, setSession, clearSession]);
+  }, [session, status, setSession, clearSession]);
 
   return null;
 }

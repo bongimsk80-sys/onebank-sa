@@ -40,6 +40,7 @@ const roleColors: Record<string, string> = {
 export default function Sidebar() {
   const pathname = usePathname();
   const { name, role } = useSessionStore();
+  const clearSession = useSessionStore((s) => s.clearSession);
   const navItems = [
     ...baseNavItems,
     ...(role === "admin"
@@ -105,7 +106,10 @@ export default function Sidebar() {
           </div>
         </div>
         <button
-          onClick={() => signOut({ callbackUrl: "/login" })}
+          onClick={() => {
+            clearSession();
+            signOut({ callbackUrl: "/login" });
+          }}
           className="w-full flex items-center gap-2 px-4 py-2 rounded-xl text-xs text-[#A0C4B1] hover:bg-[#2D6A4F] hover:text-white dark:text-[#A0C4B1] dark:hover:bg-[#2D6A4F] dark:hover:text-white transition-all"
         >
           <LogOut size={14} />
