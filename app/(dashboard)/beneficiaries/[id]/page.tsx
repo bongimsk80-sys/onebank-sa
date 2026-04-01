@@ -76,19 +76,6 @@ const tags = [
 ];
 
 export default function BeneficiaryDetailPage() {
-    async function handleDelete() {
-      if (!confirm("Are you sure you want to delete this beneficiary?")) return;
-      try {
-        await fetch(`/api/beneficiaries`, {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id }),
-        });
-        router.push("/beneficiaries");
-      } catch (error) {
-        console.error("Failed to delete beneficiary:", error);
-      }
-    }
   const { id } = useParams();
   const router = useRouter();
   const [beneficiary, setBeneficiary] = useState<any>(null);
