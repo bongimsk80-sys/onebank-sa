@@ -63,7 +63,7 @@ export async function POST(request: Request) {
         status: data.isScheduled ? "scheduled" : "pending",
         initiatedBy: data.initiatedBy,
         reference: data.reference,
-        description: data.description,
+        description: data.description ?? "",
         priority: data.priority ?? false,
         isScheduled: data.isScheduled ?? false,
         scheduledDate: data.scheduledDate ? new Date(data.scheduledDate) : null,
