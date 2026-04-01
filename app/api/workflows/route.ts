@@ -64,7 +64,7 @@ export async function POST(request: Request) {
     const workflow = await prisma.approvalWorkflow.create({
       data: {
         name: data.name,
-        description: data.description,
+        description: data.description ?? "",
         minAmount: data.minAmount ?? 0,
         maxAmount: data.maxAmount ?? 999999999,
         steps: JSON.stringify(data.steps),
