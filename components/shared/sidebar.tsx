@@ -15,6 +15,7 @@ import {
   Link2,
   UserCog,
   MessageSquare,
+  Activity,
 } from "lucide-react";
 
 const baseNavItems = [
@@ -44,7 +45,10 @@ export default function Sidebar() {
   const navItems = [
     ...baseNavItems,
     ...(role === "admin"
-      ? [{ label: "Feedback", href: "/feedback", icon: MessageSquare }]
+      ? [
+          { label: "Feedback", href: "/feedback", icon: MessageSquare },
+          { label: "Platform Stats", href: "/metrics", icon: Activity },
+        ]
       : []),
   ];
 

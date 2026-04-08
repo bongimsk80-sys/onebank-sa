@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { recordRealTimeMetric } from "@/lib/metrics";
 
 const PaymentSchema = z.object({
   amount: z.number().positive().max(10000000),
@@ -145,6 +146,13 @@ export async function PATCH(request: Request) {
         },
       });
     }
+
+    await recordRealTimeMetric({
+      type: "payment",
+      amount: payment.amount,
+      bank: payment.bank,
+      status: body.status,
+    });
 
     return NextResponse.json({ payment });
   } catch (error) {

@@ -188,3 +188,27 @@ model TransferLimit {
 
   @@map("transfer_limits")
 }
+
+model PlatformMetric {
+  id                    String   @id @default(cuid())
+  date                  DateTime @default(now())
+  metricType            String
+  totalTransactions     Int      @default(0)
+  totalTransactionValue Float    @default(0)
+  totalPayments         Int      @default(0)
+  totalPaymentValue     Float    @default(0)
+  totalUsers            Int      @default(0)
+  totalBeneficiaries    Int      @default(0)
+  bankBreakdown         String   @default("[]")
+  roleBreakdown         String   @default("[]")
+  statusBreakdown       String   @default("[]")
+  peakHour              Int?
+  avgPaymentSize        Float    @default(0)
+  approvedPayments      Int      @default(0)
+  rejectedPayments      Int      @default(0)
+  settledPayments       Int      @default(0)
+  pendingPayments       Int      @default(0)
+  createdAt             DateTime @default(now())
+
+  @@map("platform_metrics")
+}
