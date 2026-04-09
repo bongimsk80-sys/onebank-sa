@@ -105,7 +105,7 @@ export default function MetricsPage() {
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#D4A017] flex items-center justify-center font-bold text-[#1B4332] text-sm">
+              <div className="w-10 h-10 min-w-[40px] rounded-full bg-[#D4A017] flex items-center justify-center font-bold text-[#1B4332] text-sm flex-shrink-0">
                 OB
               </div>
               <div>
@@ -119,7 +119,7 @@ export default function MetricsPage() {
                 <span className="text-xs text-[#A0AEC0]">Live</span>
               </div>
               {lastUpdated && (
-                <span className="text-xs text-[#718096]">
+                <span className="hidden sm:inline text-xs text-[#718096]">
                   Updated {lastUpdated.toLocaleTimeString("en-ZA")}
                 </span>
               )}
@@ -238,7 +238,7 @@ export default function MetricsPage() {
               />
               <Tooltip content={<CustomTooltip />} />
               <Legend wrapperStyle={{ fontSize: 11, color: "#718096" }} />
-              <Bar dataKey="value" name="Value (ZAR)" fill="#1B4332" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="value" name="Value (ZAR)" fill="#22C55E" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
