@@ -11,6 +11,8 @@ const demoUsers = [
   { role: "Approver", email: "approver@onebank.co.za", password: "OneBankApprove2026!" },
   { role: "Initiator", email: "initiator@onebank.co.za", password: "OneBankInit2026!" },
   { role: "Reviewer", email: "reviewer@onebank.co.za", password: "OneBankReview2026!" },
+  { role: "Executor", email: "executor@onebank.co.za", password: "OneBankExec2026!" },
+  { role: "Viewer", email: "viewer@onebank.co.za", password: "OneBankView2026!" },
 ];
 
 const features = [
