@@ -44,7 +44,25 @@ export default function LoginPage() {
     });
 
     if (result?.error) {
-      setError("Invalid email or password. Please try again.");
+      // NextAuth surfaces auth-callback throws as "CredentialsSignin".
+      // We detect the unverified-email case by calling our own status endpoint.
+      const code = result.error;
+      if (code === "CredentialsSignin") {
+        // Check if the account exists but is unverified
+        const check = await fetch("/api/auth/login-status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        }).then((r) => r.json()).catch(() => ({}));
+
+        if (check.reason === "unverified") {
+          setError("Your email address hasn't been verified yet. Check your inbox for the verification link, or contact support.");
+        } else {
+          setError("Invalid email or password. Please try again.");
+        }
+      } else {
+        setError("Invalid email or password. Please try again.");
+      }
       setLoading(false);
     } else {
       // Read fresh session to determine redirect destination.
