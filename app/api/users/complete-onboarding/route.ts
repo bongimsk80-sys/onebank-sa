@@ -102,13 +102,14 @@ export async function PATCH(request: Request) {
         },
       });
 
-      await sendTeamInviteEmail({
-        to:        inv.email,
-        invitedBy: userName,
-        orgName:   orgName ?? "OneBank SA",
-        role:      inv.role,
-        token:     inviteToken,
-      });
+      const inviteUrl = `${process.env.NEXTAUTH_URL ?? ""}/invite?token=${inviteToken}`;
+      await sendTeamInviteEmail(
+        inv.email,
+        userName,
+        orgName ?? "OneBank SA",
+        inv.role,
+        inviteUrl
+      );
 
       inviteResults.push({ email: inv.email, status: "sent" });
     }
