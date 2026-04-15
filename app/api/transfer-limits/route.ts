@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, requireRole } from "@/lib/api-auth";
+import { requireAuth, requireRole, getOrgId } from "@/lib/api-auth";
 import { z } from "zod";
 
 const UpdateTransferLimitSchema = z.object({
@@ -14,9 +14,11 @@ const UpdateTransferLimitSchema = z.object({
 export async function GET() {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
+  const orgId = getOrgId(session);
 
   try {
     const limits = await prisma.transferLimit.findMany({
+      where: { ...(orgId ? { organisationId: orgId } : {}) },
       orderBy: { role: "asc" },
     });
     return NextResponse.json({ limits });
@@ -31,6 +33,7 @@ export async function GET() {
 export async function PATCH(request: Request) {
   const session = await requireRole(["admin"]);
   if (session instanceof NextResponse) return session;
+  const orgId = getOrgId(session);
 
   try {
     const body = await request.json();
@@ -44,7 +47,7 @@ export async function PATCH(request: Request) {
 
     const data = result.data;
     const limit = await prisma.transferLimit.update({
-      where: { id: data.id },
+      where: { id: data.id, ...(orgId ? { organisationId: orgId } : {}) },
       data: {
         dailyLimit: data.dailyLimit,
         perTxLimit: data.perTxLimit,

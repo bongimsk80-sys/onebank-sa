@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth, getOrgId } from "@/lib/api-auth";
 import { z } from "zod";
 
 const CreateActivityLogSchema = z.object({
@@ -14,6 +15,10 @@ const CreateActivityLogSchema = z.object({
 });
 
 export async function GET(request: Request) {
+  const session = await requireAuth();
+  if (session instanceof NextResponse) return session;
+  const orgId = getOrgId(session);
+
   try {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search");
@@ -22,6 +27,7 @@ export async function GET(request: Request) {
 
     const logs = await prisma.activityLog.findMany({
       where: {
+        ...(orgId ? { organisationId: orgId } : {}),
         ...(search
           ? {
               OR: [
@@ -48,6 +54,10 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const session = await requireAuth();
+  if (session instanceof NextResponse) return session;
+  const orgId = getOrgId(session);
+
   try {
     const body = await request.json();
     const result = CreateActivityLogSchema.safeParse(body);
@@ -69,6 +79,7 @@ export async function POST(request: Request) {
         entityId: data.entityId,
         ipAddress: data.ipAddress ?? "127.0.0.1",
         status: data.status ?? "success",
+        ...(orgId ? { organisationId: orgId } : {}),
       },
     });
     return NextResponse.json({ log }, { status: 201 });

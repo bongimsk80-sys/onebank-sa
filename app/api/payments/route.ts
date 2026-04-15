@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth, requireRole, getOrgId } from "@/lib/api-auth";
 import { z } from "zod";
 import { recordRealTimeMetric } from "@/lib/metrics";
 
@@ -23,12 +24,17 @@ const UpdatePaymentSchema = z.object({
 });
 
 export async function GET(request: Request) {
+  const session = await requireAuth();
+  if (session instanceof NextResponse) return session;
+  const orgId = getOrgId(session);
+
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
 
     const payments = await prisma.payment.findMany({
       where: {
+        ...(orgId ? { organisationId: orgId } : {}),
         ...(status && status !== "all" ? { status } : {}),
       },
       orderBy: { date: "desc" },
@@ -44,6 +50,10 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const session = await requireAuth();
+  if (session instanceof NextResponse) return session;
+  const orgId = getOrgId(session);
+
   try {
     const body = await request.json();
     const result = PaymentSchema.safeParse(body);
@@ -68,6 +78,7 @@ export async function POST(request: Request) {
         priority: data.priority ?? false,
         isScheduled: data.isScheduled ?? false,
         scheduledDate: data.scheduledDate ? new Date(data.scheduledDate) : null,
+        ...(orgId ? { organisationId: orgId } : {}),
       },
     });
     return NextResponse.json({ payment }, { status: 201 });
@@ -80,6 +91,10 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
+  const session = await requireRole(["admin", "approver"]);
+  if (session instanceof NextResponse) return session;
+  const orgId = getOrgId(session);
+
   try {
     const body = await request.json();
     const result = UpdatePaymentSchema.safeParse(body);
@@ -94,7 +109,7 @@ export async function PATCH(request: Request) {
 
 
     const payment = await prisma.payment.update({
-      where: { id },
+      where: { id, ...(orgId ? { organisationId: orgId } : {}) },
       data: {
         status,
         ...(rejectionReason
@@ -111,6 +126,7 @@ export async function PATCH(request: Request) {
         entityType: "payment",
         entityId: payment.id,
         status: status === "rejected" ? "failed" : "success",
+        ...(orgId ? { organisationId: orgId } : {}),
       },
     });
 
@@ -143,6 +159,7 @@ export async function PATCH(request: Request) {
         data: {
           ...notificationMap[status],
           link: "/payments",
+          ...(orgId ? { organisationId: orgId } : {}),
         },
       });
     }

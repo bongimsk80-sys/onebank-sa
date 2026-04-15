@@ -1,12 +1,19 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth, getOrgId } from "@/lib/api-auth";
 
 export async function GET() {
+  const session = await requireAuth();
+  if (session instanceof NextResponse) return session;
+  const orgId = getOrgId(session);
+
   try {
+    const orgFilter = orgId ? { organisationId: orgId } : {};
+
     const [accounts, payments, transactions] = await Promise.all([
-      prisma.bankAccount.findMany({ where: { isActive: true } }),
-      prisma.payment.findMany(),
-      prisma.transaction.findMany(),
+      prisma.bankAccount.findMany({ where: { isActive: true, ...orgFilter } }),
+      prisma.payment.findMany({ where: { ...orgFilter } }),
+      prisma.transaction.findMany({ where: { ...orgFilter } }),
     ]);
 
     // Bank balances
@@ -60,8 +67,8 @@ export async function GET() {
         month,
         credits: realCredits > 0 ? realCredits : mockCredits[i],
         debits: realDebits > 0 ? realDebits : mockDebits[i],
-  };
-});
+      };
+    });
 
     // Payment category breakdown
     const categoryBreakdown = [

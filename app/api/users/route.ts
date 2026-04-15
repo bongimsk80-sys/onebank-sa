@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, requireRole } from "@/lib/api-auth";
+import { requireAuth, requireRole, getOrgId } from "@/lib/api-auth";
 import { z } from "zod";
 
 const CreateUserSchema = z.object({
@@ -24,9 +24,11 @@ const DeleteUserSchema = z.object({
 export async function GET() {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
+  const orgId = getOrgId(session);
 
   try {
     const users = await prisma.user.findMany({
+      where: { ...(orgId ? { organisationId: orgId } : {}) },
       orderBy: { createdAt: "asc" },
       select: {
         id: true,
@@ -49,6 +51,7 @@ export async function GET() {
 export async function POST(request: Request) {
   const session = await requireRole(["admin"]);
   if (session instanceof NextResponse) return session;
+  const orgId = getOrgId(session);
 
   try {
     const body = await request.json();
@@ -80,6 +83,7 @@ export async function POST(request: Request) {
         password: data.password,
         role: data.role,
         isActive: true,
+        ...(orgId ? { organisationId: orgId } : {}),
       },
       select: {
         id: true,
@@ -97,6 +101,7 @@ export async function POST(request: Request) {
         message: `${data.name} has been added as ${data.role}.`,
         type: "info",
         link: "/settings/users",
+        ...(orgId ? { organisationId: orgId } : {}),
       },
     });
 
@@ -112,6 +117,7 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   const session = await requireRole(["admin"]);
   if (session instanceof NextResponse) return session;
+  const orgId = getOrgId(session);
 
   try {
     const body = await request.json();
@@ -126,7 +132,7 @@ export async function PATCH(request: Request) {
     const data = result.data;
 
     const user = await prisma.user.update({
-      where: { id: data.id },
+      where: { id: data.id, ...(orgId ? { organisationId: orgId } : {}) },
       data: {
         ...(data.role ? { role: data.role } : {}),
         ...(typeof data.isActive === "boolean" ? { isActive: data.isActive } : {}),
@@ -154,6 +160,7 @@ export async function PATCH(request: Request) {
 export async function DELETE(request: Request) {
   const session = await requireRole(["admin"]);
   if (session instanceof NextResponse) return session;
+  const orgId = getOrgId(session);
 
   try {
     const body = await request.json();
@@ -165,7 +172,9 @@ export async function DELETE(request: Request) {
       );
     }
 
-    await prisma.user.delete({ where: { id: result.data.id } });
+    await prisma.user.delete({
+      where: { id: result.data.id, ...(orgId ? { organisationId: orgId } : {}) },
+    });
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json(

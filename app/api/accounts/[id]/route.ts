@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireRole, getOrgId } from "@/lib/api-auth";
 import { z } from "zod";
 
 const ParamsSchema = z.object({
@@ -15,6 +16,10 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const session = await requireRole(["admin"]);
+  if (session instanceof NextResponse) return session;
+  const orgId = getOrgId(session);
+
   try {
     const parsedParams = ParamsSchema.safeParse(await params);
     if (!parsedParams.success) {
@@ -36,7 +41,7 @@ export async function PATCH(
     const data = result.data;
 
     const account = await prisma.bankAccount.update({
-      where: { id },
+      where: { id, ...(orgId ? { organisationId: orgId } : {}) },
       data: {
         ...(typeof data.isActive === "boolean" ? { isActive: data.isActive } : {}),
         ...(data.balance !== undefined ? { balance: data.balance } : {}),
@@ -56,6 +61,10 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const session = await requireRole(["admin"]);
+  if (session instanceof NextResponse) return session;
+  const orgId = getOrgId(session);
+
   try {
     const parsedParams = ParamsSchema.safeParse(await params);
     if (!parsedParams.success) {
@@ -65,7 +74,9 @@ export async function DELETE(
       );
     }
     const { id } = parsedParams.data;
-    await prisma.bankAccount.delete({ where: { id } });
+    await prisma.bankAccount.delete({
+      where: { id, ...(orgId ? { organisationId: orgId } : {}) },
+    });
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json(

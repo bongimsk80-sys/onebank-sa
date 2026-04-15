@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth, requireRole, getOrgId } from "@/lib/api-auth";
 import { z } from "zod";
 
 const CreateConnectionSchema = z.object({
@@ -15,8 +16,13 @@ const UpdateConnectionSchema = z.object({
 });
 
 export async function GET() {
+  const session = await requireAuth();
+  if (session instanceof NextResponse) return session;
+  const orgId = getOrgId(session);
+
   try {
     const connections = await prisma.erpConnection.findMany({
+      where: { ...(orgId ? { organisationId: orgId } : {}) },
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json({ connections });
@@ -29,6 +35,10 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const session = await requireRole(["admin"]);
+  if (session instanceof NextResponse) return session;
+  const orgId = getOrgId(session);
+
   try {
     const body = await request.json();
     const result = CreateConnectionSchema.safeParse(body);
@@ -48,6 +58,7 @@ export async function POST(request: Request) {
         apiKey: data.apiKey,
         apiUrl: data.apiUrl,
         lastSyncedAt: new Date(),
+        ...(orgId ? { organisationId: orgId } : {}),
       },
     });
     return NextResponse.json({ connection }, { status: 201 });
@@ -60,6 +71,10 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
+  const session = await requireRole(["admin"]);
+  if (session instanceof NextResponse) return session;
+  const orgId = getOrgId(session);
+
   try {
     const body = await request.json();
     const result = UpdateConnectionSchema.safeParse(body);
@@ -72,7 +87,7 @@ export async function PATCH(request: Request) {
 
     const data = result.data;
     const connection = await prisma.erpConnection.update({
-      where: { id: data.id },
+      where: { id: data.id, ...(orgId ? { organisationId: orgId } : {}) },
       data: {
         status: data.status,
         lastSyncedAt: data.status === "connected" ? new Date() : undefined,

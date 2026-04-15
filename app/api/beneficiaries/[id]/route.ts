@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth, getOrgId } from "@/lib/api-auth";
 import { z } from "zod";
 
 const ParamsSchema = z.object({
@@ -15,6 +16,10 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const session = await requireAuth();
+  if (session instanceof NextResponse) return session;
+  const orgId = getOrgId(session);
+
   try {
     const parsedParams = ParamsSchema.safeParse(await params);
     if (!parsedParams.success) {
@@ -25,8 +30,8 @@ export async function GET(
     }
     const { id } = parsedParams.data;
 
-    const beneficiary = await prisma.beneficiary.findUnique({
-      where: { id },
+    const beneficiary = await prisma.beneficiary.findFirst({
+      where: { id, ...(orgId ? { organisationId: orgId } : {}) },
     });
 
     if (!beneficiary) {
@@ -37,7 +42,10 @@ export async function GET(
     }
 
     const payments = await prisma.payment.findMany({
-      where: { beneficiary: beneficiary.name },
+      where: {
+        beneficiary: beneficiary.name,
+        ...(orgId ? { organisationId: orgId } : {}),
+      },
       orderBy: { date: "desc" },
       take: 10,
     });
@@ -55,6 +63,10 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const session = await requireAuth();
+  if (session instanceof NextResponse) return session;
+  const orgId = getOrgId(session);
+
   try {
     const parsedParams = ParamsSchema.safeParse(await params);
     if (!parsedParams.success) {
@@ -76,7 +88,7 @@ export async function PATCH(
     const data = result.data;
 
     const beneficiary = await prisma.beneficiary.update({
-      where: { id },
+      where: { id, ...(orgId ? { organisationId: orgId } : {}) },
       data: {
         ...(data.tag ? { tag: data.tag } : {}),
         ...(data.status ? { status: data.status } : {}),

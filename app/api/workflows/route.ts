@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, requireRole } from "@/lib/api-auth";
+import { requireAuth, requireRole, getOrgId } from "@/lib/api-auth";
 import { z } from "zod";
 
 const WorkflowStepSchema = z.object({
@@ -32,9 +32,11 @@ const DeleteWorkflowSchema = z.object({
 export async function GET() {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
+  const orgId = getOrgId(session);
 
   try {
     const workflows = await prisma.approvalWorkflow.findMany({
+      where: { ...(orgId ? { organisationId: orgId } : {}) },
       orderBy: { minAmount: "asc" },
     });
     return NextResponse.json({ workflows });
@@ -49,6 +51,7 @@ export async function GET() {
 export async function POST(request: Request) {
   const session = await requireRole(["admin"]);
   if (session instanceof NextResponse) return session;
+  const orgId = getOrgId(session);
 
   try {
     const body = await request.json();
@@ -69,6 +72,7 @@ export async function POST(request: Request) {
         maxAmount: data.maxAmount ?? 999999999,
         steps: JSON.stringify(data.steps),
         isActive: true,
+        ...(orgId ? { organisationId: orgId } : {}),
       },
     });
     return NextResponse.json({ workflow }, { status: 201 });
@@ -83,6 +87,7 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   const session = await requireRole(["admin"]);
   if (session instanceof NextResponse) return session;
+  const orgId = getOrgId(session);
 
   try {
     const body = await request.json();
@@ -96,7 +101,7 @@ export async function PATCH(request: Request) {
 
     const data = result.data;
     const workflow = await prisma.approvalWorkflow.update({
-      where: { id: data.id },
+      where: { id: data.id, ...(orgId ? { organisationId: orgId } : {}) },
       data: {
         ...(data.name ? { name: data.name } : {}),
         ...(typeof data.isActive === "boolean" ? { isActive: data.isActive } : {}),
@@ -117,6 +122,7 @@ export async function PATCH(request: Request) {
 export async function DELETE(request: Request) {
   const session = await requireRole(["admin"]);
   if (session instanceof NextResponse) return session;
+  const orgId = getOrgId(session);
 
   try {
     const body = await request.json();
@@ -128,7 +134,9 @@ export async function DELETE(request: Request) {
       );
     }
 
-    await prisma.approvalWorkflow.delete({ where: { id: result.data.id } });
+    await prisma.approvalWorkflow.delete({
+      where: { id: result.data.id, ...(orgId ? { organisationId: orgId } : {}) },
+    });
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json(
