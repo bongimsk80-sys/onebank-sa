@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { Card } from "@/components/ui/card";
@@ -28,37 +27,36 @@ const settingsGroups = [
   {
     title: "SETTINGS",
     items: [
-      { icon: Globe, label: "Language", value: "English", href: null },
-      { icon: LayoutDashboard, label: "Customize Overview", value: null, href: "/settings/customize-overview" },
-      { icon: Fingerprint, label: "Face ID & Password", value: null, href: null },
-      { icon: Bell, label: "Notification Settings", value: null, href: "/settings/notifications" },
-      { icon: Sun, label: "Display Settings", value: "Light", href: "/settings/display" },
-      { icon: Sliders, label: "Preferences", value: null, href: null },
-      { icon: QrCode, label: "QR Pay Authentication", value: "Biometric", href: "/settings/qr-auth" },
+      { icon: Globe,         label: "Language",            value: "English",   href: null,                          comingSoon: true  },
+      { icon: LayoutDashboard, label: "Customize Overview", value: null,        href: "/settings/customize-overview", comingSoon: false },
+      { icon: Fingerprint,  label: "Face ID & Password",   value: null,        href: null,                          comingSoon: true  },
+      { icon: Bell,         label: "Notification Settings",value: null,        href: "/settings/notifications",      comingSoon: false },
+      { icon: Sun,          label: "Display Settings",     value: "Light",     href: "/settings/display",            comingSoon: false },
+      { icon: Sliders,      label: "Preferences",          value: null,        href: null,                          comingSoon: true  },
+      { icon: QrCode,       label: "QR Pay Authentication",value: "Biometric", href: "/settings/qr-auth",            comingSoon: false },
     ],
   },
   {
     title: "ACCOUNT",
     items: [
-      { icon: Building2, label: "Bank Accounts", value: null, href: "/settings/bank-accounts" },
-      { icon: Layers, label: "Virtual Accounts", value: null, href: null },
-      { icon: Wifi, label: "Open Banking Services", value: null, href: null },
-      { icon: ClipboardList, label: "Activity Log", value: null, href: "/settings/activity-log" },
+      { icon: Building2,    label: "Bank Accounts",        value: null,        href: "/settings/bank-accounts",      comingSoon: false },
+      { icon: Layers,       label: "Virtual Accounts",     value: null,        href: null,                          comingSoon: true  },
+      { icon: Wifi,         label: "Open Banking Services",value: null,        href: null,                          comingSoon: true  },
+      { icon: ClipboardList,label: "Activity Log",         value: null,        href: "/settings/activity-log",       comingSoon: false },
     ],
   },
   {
     title: "ORGANISATION",
     items: [
-      { icon: Users, label: "Users & Roles", value: null, href: "/users" },
-      { icon: Shield, label: "Approval Workflows", value: null, href: "/settings/workflows" },
-      { icon: Sliders, label: "Transfer Limits", value: null, href: "/settings/transfer-limits" },
+      { icon: Users,        label: "Users & Roles",        value: null,        href: "/users",                       comingSoon: false },
+      { icon: Shield,       label: "Approval Workflows",   value: null,        href: "/settings/workflows",          comingSoon: false },
+      { icon: Sliders,      label: "Transfer Limits",      value: null,        href: "/settings/transfer-limits",    comingSoon: false },
     ],
   },
 ];
 
 export default function SettingsPage() {
   const router = useRouter();
-  const [darkMode, setDarkMode] = useState(false);
   const { name, email, role, clearSession } = useSessionStore();
 
   return (
@@ -73,12 +71,8 @@ export default function SettingsPage() {
               : "U"}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-base font-bold text-[#1A202C]">
-              {name ?? "User"}
-            </p>
-            <p className="text-sm text-[#718096] truncate">
-              {email ?? ""}
-            </p>
+            <p className="text-base font-bold text-[#1A202C]">{name ?? "User"}</p>
+            <p className="text-sm text-[#718096] truncate">{email ?? ""}</p>
             <span className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-lg bg-[#F0FDF4] text-[#27AE60]">
               {role ?? "viewer"}
             </span>
@@ -94,27 +88,38 @@ export default function SettingsPage() {
             {group.title}
           </p>
           <Card className="rounded-xl border border-[#E2E8F0] bg-white shadow-sm divide-y divide-[#E2E8F0]">
-            {group.items.map(({ icon: Icon, label, value, href }) => (
+            {group.items.map(({ icon: Icon, label, value, href, comingSoon }) => (
               <div
                 key={label}
-                onClick={() => (href ? router.push(href) : null)}
+                onClick={() => (!comingSoon && href ? router.push(href) : undefined)}
                 className={`flex items-center justify-between px-4 py-3.5 transition-colors ${
-                  href ? "cursor-pointer hover:bg-[#F4F6F8]" : "cursor-default"
+                  !comingSoon && href
+                    ? "cursor-pointer hover:bg-[#F4F6F8]"
+                    : "cursor-default"
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-[#F4F6F8] flex items-center justify-center">
-                    <Icon size={16} className="text-[#1B4332]" />
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${comingSoon ? "bg-[#F4F6F8]" : "bg-[#F4F6F8]"}`}>
+                    <Icon size={16} className={comingSoon ? "text-[#A0AEC0]" : "text-[#1B4332]"} />
                   </div>
-                  <span className="text-sm text-[#1A202C] font-medium">
+                  <span className={`text-sm font-medium ${comingSoon ? "text-[#A0AEC0]" : "text-[#1A202C]"}`}>
                     {label}
                   </span>
                 </div>
+
                 <div className="flex items-center gap-2">
-                  {value && (
-                    <span className="text-sm text-[#A0AEC0]">{value}</span>
+                  {comingSoon ? (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FFF7ED] text-[#D4A017] border border-[#D4A017]/20">
+                      Coming Soon
+                    </span>
+                  ) : (
+                    <>
+                      {value && (
+                        <span className="text-sm text-[#A0AEC0]">{value}</span>
+                      )}
+                      <ChevronRight size={14} className="text-[#A0AEC0]" />
+                    </>
                   )}
-                  <ChevronRight size={14} className="text-[#A0AEC0]" />
                 </div>
               </div>
             ))}
@@ -126,7 +131,7 @@ export default function SettingsPage() {
       <Card className="p-4 rounded-xl border border-[#E2E8F0] bg-white shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-bold text-[#1A202C]">OneBank</p>
+            <p className="text-sm font-bold text-[#1A202C]">OneBank SA</p>
             <p className="text-xs text-[#A0AEC0]">Version 1.0.0 (MVP)</p>
           </div>
           <span className="text-[10px] font-bold px-2 py-1 rounded-lg bg-[#F0FDF4] text-[#27AE60]">
