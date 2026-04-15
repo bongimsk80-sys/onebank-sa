@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
@@ -269,6 +270,17 @@ export default function LoginPage() {
               </button>
             ))}
           </div>
+
+          {/* Register link */}
+          <p className="text-sm text-[#718096] mt-6 text-center">
+            Don&apos;t have an account?{" "}
+            <Link
+              href="/register"
+              className="font-semibold text-[#1B4332] hover:underline"
+            >
+              Register free
+            </Link>
+          </p>
 
           {/* Mobile footer */}
           <p className="text-xs text-[#A0AEC0] mt-8 text-center lg:hidden">
