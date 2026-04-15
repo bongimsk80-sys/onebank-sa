@@ -2,7 +2,9 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM = "OneBank SA <hello@onebank.co.za>";
+// Use Resend's shared test domain until onebank.co.za is verified in Resend.
+// Once the domain is verified, change this to: "OneBank SA <hello@onebank.co.za>"
+const FROM = "OneBank SA <onboarding@resend.dev>";
 
 // ─── Brand constants ────────────────────────────────────────────────────────
 const BRAND = {
@@ -333,7 +335,7 @@ export async function sendWelcomeEmail(
       ${featureRows}
     </table>
 
-    ${ctaButton("Go to Dashboard", "https://onebank-sa-iota.vercel.app/overview")}
+    ${ctaButton("Go to Dashboard", `${process.env.NEXTAUTH_URL ?? "https://onebank-sa-iota.vercel.app"}/overview`)}
 
     <p style="font-family:${BRAND.font};font-size:13px;color:${BRAND.textMuted};margin-top:28px;line-height:1.6;text-align:center;">
       Need help getting started? Reply to this email or reach us at<br/>

@@ -90,8 +90,8 @@ export async function POST(req: NextRequest) {
     });
 
     // ── 10. Send verification email ──────────────────────────────────────────
-    const verificationUrl =
-      `https://onebank-sa-iota.vercel.app/verify-email?token=${verificationToken}`;
+    const baseUrl = process.env.NEXTAUTH_URL ?? "https://onebank-sa-iota.vercel.app";
+    const verificationUrl = `${baseUrl}/verify-email?token=${verificationToken}`;
 
     await sendVerificationEmail(user.email, user.name, verificationUrl);
 

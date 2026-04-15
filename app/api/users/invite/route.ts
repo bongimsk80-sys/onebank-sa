@@ -64,7 +64,8 @@ export async function POST(req: NextRequest) {
     });
 
     // ── Send invite email ──────────────────────────────────────────────────
-    const inviteUrl = `https://onebank-sa-iota.vercel.app/invite?token=${inviteToken}`;
+    const baseUrl   = process.env.NEXTAUTH_URL ?? "https://onebank-sa-iota.vercel.app";
+    const inviteUrl = `${baseUrl}/invite?token=${inviteToken}`;
     await sendTeamInviteEmail(trimmedEmail, inviterName, orgName, role as string, inviteUrl);
 
     // ── Notify ─────────────────────────────────────────────────────────────
