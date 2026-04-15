@@ -1,28 +1,49 @@
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 
+// Public auth-flow pages — never require a session
+const PUBLIC_PATHS = [
+  "/login",
+  "/register",
+  "/verify-email",
+  "/forgot-password",
+  "/reset-password",
+  "/invite",
+];
+
+// Dashboard pages that require a valid session
+const PROTECTED_PATHS = [
+  "/overview",
+  "/transactions",
+  "/payments",
+  "/beneficiaries",
+  "/analytics",
+  "/erp",
+  "/users",
+  "/settings",
+  "/feedback",
+  "/onboarding",
+];
+
 export default auth((req) => {
   const { nextUrl, auth: session } = req;
+  const pathname = nextUrl.pathname;
   const isLoggedIn = !!session;
 
-  const isAuthPage = nextUrl.pathname.startsWith("/login");
-  const isProtectedPage =
-    nextUrl.pathname.startsWith("/overview") ||
-    nextUrl.pathname.startsWith("/transactions") ||
-    nextUrl.pathname.startsWith("/payments") ||
-    nextUrl.pathname.startsWith("/beneficiaries") ||
-    nextUrl.pathname.startsWith("/analytics") ||
-    nextUrl.pathname.startsWith("/settings") ||
-    nextUrl.pathname.startsWith("/feedback");
+  const isPublicAuthPage = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
+  const isProtectedPage = PROTECTED_PATHS.some((p) => pathname.startsWith(p));
 
-  // Redirect logged-in users away from login page
-  if (isLoggedIn && isAuthPage) {
+  // Redirect already-logged-in users away from auth pages (except /invite — allow
+  // logged-in admins to preview the invite acceptance flow)
+  if (isLoggedIn && isPublicAuthPage && !pathname.startsWith("/invite")) {
     return NextResponse.redirect(new URL("/overview", nextUrl));
   }
 
-  // Redirect logged-out users to login page
+  // Redirect unauthenticated users away from protected pages
   if (!isLoggedIn && isProtectedPage) {
-    return NextResponse.redirect(new URL("/login", nextUrl));
+    const loginUrl = new URL("/login", nextUrl);
+    loginUrl.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();
@@ -30,6 +51,7 @@ export default auth((req) => {
 
 export const config = {
   matcher: [
+    // Protected dashboard routes
     "/overview",
     "/transactions",
     "/payments",
@@ -39,6 +61,12 @@ export const config = {
     "/users",
     "/settings/:path*",
     "/feedback",
+    "/onboarding",
+    // Public auth-flow routes (so logged-in users are redirected away)
     "/login",
+    "/register",
+    "/verify-email",
+    "/forgot-password",
+    "/reset-password",
   ],
 };
