@@ -223,12 +223,12 @@ export default function LoginPage() {
             </div>
 
             <div className="flex justify-end">
-              <button
-                type="button"
+              <Link
+                href="/forgot-password"
                 className="text-xs text-[#1B4332] font-semibold hover:underline"
               >
                 Forgot password?
-              </button>
+              </Link>
             </div>
 
             <button
