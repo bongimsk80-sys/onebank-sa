@@ -17,15 +17,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const user = await prisma.user.findUnique({
           where: { email: credentials.email as string },
           select: {
-            id:               true,
-            name:             true,
-            email:            true,
-            password:         true,
-            role:             true,
-            isActive:         true,
-            isVerified:       true,
-            verificationToken: true,
-            organisationId:   true,
+            id:                     true,
+            name:                   true,
+            email:                  true,
+            password:               true,
+            role:                   true,
+            isActive:               true,
+            isVerified:             true,
+            verificationToken:      true,
+            organisationId:         true,
+            hasCompletedOnboarding: true,
           },
         });
 
@@ -44,13 +45,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         );
         if (!isValid) return null;
 
+        // Resolve org name once at login — cheap single query, stored in JWT.
+        let orgName: string | null = null;
+        if (user.organisationId) {
+          const org = await prisma.organisation.findUnique({
+            where: { id: user.organisationId },
+            select: { name: true },
+          });
+          orgName = org?.name ?? null;
+        }
+
         return {
-          id:             user.id,
-          name:           user.name,
-          email:          user.email,
-          role:           user.role,
-          organisationId: user.organisationId,
-          isVerified:     user.isVerified,
+          id:                     user.id,
+          name:                   user.name,
+          email:                  user.email,
+          role:                   user.role,
+          organisationId:         user.organisationId,
+          isVerified:             user.isVerified,
+          hasCompletedOnboarding: user.hasCompletedOnboarding,
+          orgName,
         };
       },
     }),
@@ -58,19 +71,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role           = (user as any).role;
-        token.id             = (user.id as string) ?? "";
-        token.organisationId = (user as any).organisationId ?? null;
-        token.isVerified     = (user as any).isVerified ?? false;
+        token.role                   = (user as any).role;
+        token.id                     = (user.id as string) ?? "";
+        token.organisationId         = (user as any).organisationId ?? null;
+        token.isVerified             = (user as any).isVerified ?? false;
+        token.hasCompletedOnboarding = (user as any).hasCompletedOnboarding ?? false;
+        token.orgName                = (user as any).orgName ?? null;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as any).role           = token.role;
-        (session.user as any).id             = token.id;
-        (session.user as any).organisationId = token.organisationId ?? null;
-        (session.user as any).isVerified     = token.isVerified ?? false;
+        (session.user as any).role                   = token.role;
+        (session.user as any).id                     = token.id;
+        (session.user as any).organisationId         = token.organisationId ?? null;
+        (session.user as any).isVerified             = token.isVerified ?? false;
+        (session.user as any).hasCompletedOnboarding = token.hasCompletedOnboarding ?? false;
+        (session.user as any).orgName                = token.orgName ?? null;
       }
       return session;
     },

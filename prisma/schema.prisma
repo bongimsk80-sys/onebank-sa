@@ -43,12 +43,13 @@ model User {
   password           String
   role               String    @default("viewer")
   isActive           Boolean   @default(true)
-  isVerified         Boolean   @default(false)
-  verificationToken  String?
-  resetToken         String?
-  resetTokenExpiry   DateTime?
-  inviteToken        String?
-  organisationId     String?
+  isVerified              Boolean   @default(false)
+  verificationToken       String?
+  resetToken              String?
+  resetTokenExpiry        DateTime?
+  inviteToken             String?
+  hasCompletedOnboarding  Boolean   @default(false)
+  organisationId          String?
   organisation       Organisation? @relation(fields: [organisationId], references: [id])
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt

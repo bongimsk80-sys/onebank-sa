@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff, Loader2, CheckCircle } from "lucide-react";
@@ -47,7 +47,14 @@ export default function LoginPage() {
       setError("Invalid email or password. Please try again.");
       setLoading(false);
     } else {
-      router.push("/overview");
+      // Read fresh session to determine redirect destination.
+      const session = await getSession();
+      const u = (session?.user as any) ?? {};
+      if (u.organisationId && !u.hasCompletedOnboarding) {
+        router.push("/onboarding");
+      } else {
+        router.push("/overview");
+      }
       router.refresh();
     }
   }
