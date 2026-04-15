@@ -14,6 +14,8 @@ import {
   UserX,
   X,
   ChevronRight,
+  Mail,
+  Loader2,
 } from "lucide-react";
 
 const roles = [
@@ -47,14 +49,24 @@ export default function UsersPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [editingUser, setEditingUser] = useState<any>(null);
-  const [error, setError] = useState("");
+  const [showAddForm,    setShowAddForm]    = useState(false);
+  const [showInviteForm, setShowInviteForm] = useState(false);
+  const [editingUser,    setEditingUser]    = useState<any>(null);
+  const [error,          setError]          = useState("");
+  const [inviteError,    setInviteError]    = useState("");
+  const [inviteSuccess,  setInviteSuccess]  = useState("");
+  const [inviting,       setInviting]       = useState(false);
   const [form, setForm] = useState({
     name: "",
     email: "",
     password: "",
     role: "viewer",
+  });
+  const [inviteForm, setInviteForm] = useState({
+    email:     "",
+    firstName: "",
+    lastName:  "",
+    role:      "viewer",
   });
 
   const isAdmin = currentRole === "admin";
@@ -132,6 +144,41 @@ export default function UsersPage() {
     fetchUsers();
   }
 
+  async function handleInviteUser() {
+    setInviteError("");
+    setInviteSuccess("");
+    const { email, firstName, lastName, role } = inviteForm;
+    if (!email || !firstName || !lastName) {
+      setInviteError("Please fill in all fields.");
+      return;
+    }
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRe.test(email)) {
+      setInviteError("Please enter a valid email address.");
+      return;
+    }
+    setInviting(true);
+    try {
+      const res  = await fetch("/api/users/invite", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ email, firstName, lastName, role }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setInviteError(data.error ?? "Failed to send invitation.");
+        return;
+      }
+      setInviteSuccess(`Invitation sent to ${email}`);
+      setInviteForm({ email: "", firstName: "", lastName: "", role: "viewer" });
+      fetchUsers();
+    } catch {
+      setInviteError("Failed to send invitation. Please try again.");
+    } finally {
+      setInviting(false);
+    }
+  }
+
   const filtered = users.filter(
     (u) =>
       u.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -179,13 +226,22 @@ export default function UsersPage() {
           />
         </div>
         {isAdmin && (
-          <button
-            onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#1B4332] text-white text-xs font-semibold hover:bg-[#2D6A4F] transition-colors flex-shrink-0"
-          >
-            <Plus size={14} />
-            Add User
-          </button>
+          <div className="flex gap-2 flex-shrink-0">
+            <button
+              onClick={() => { setShowInviteForm(true); setInviteError(""); setInviteSuccess(""); }}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#D4A017] text-white text-xs font-semibold hover:bg-[#B8860B] transition-colors"
+            >
+              <Mail size={14} />
+              Invite User
+            </button>
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#1B4332] text-white text-xs font-semibold hover:bg-[#2D6A4F] transition-colors"
+            >
+              <Plus size={14} />
+              Add User
+            </button>
+          </div>
         )}
       </div>
 
@@ -289,6 +345,133 @@ export default function UsersPage() {
           })
         )}
       </Card>
+
+      {/* Invite User Modal */}
+      {showInviteForm && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end lg:items-center justify-center p-0 lg:p-4">
+          <div className="bg-white w-full lg:max-w-md rounded-t-3xl lg:rounded-2xl overflow-hidden shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#E2E8F0]">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-[#FFF8EC] flex items-center justify-center">
+                  <Mail size={14} className="text-[#D4A017]" />
+                </div>
+                <h2 className="text-base font-bold text-[#1A202C]">Invite Team Member</h2>
+              </div>
+              <button
+                onClick={() => { setShowInviteForm(false); setInviteError(""); setInviteSuccess(""); }}
+                className="w-8 h-8 rounded-full bg-[#F4F6F8] flex items-center justify-center"
+              >
+                <X size={16} className="text-[#718096]" />
+              </button>
+            </div>
+
+            <div className="px-6 py-5 space-y-4">
+              {inviteError && (
+                <div className="px-4 py-3 rounded-xl bg-[#FFF1F2] border border-[#FFC5C5] text-sm text-[#C0392B]">
+                  {inviteError}
+                </div>
+              )}
+              {inviteSuccess && (
+                <div className="px-4 py-3 rounded-xl bg-[#F0FAF4] border border-[#C6E8D3] text-sm text-[#27AE60] font-semibold">
+                  ✓ {inviteSuccess}
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-[#718096] uppercase tracking-wide mb-1.5 block">
+                    First Name *
+                  </label>
+                  <Input
+                    placeholder="Thabo"
+                    value={inviteForm.firstName}
+                    onChange={(e) => setInviteForm({ ...inviteForm, firstName: e.target.value })}
+                    className="bg-[#F4F6F8] border-[#E2E8F0] rounded-xl text-sm h-11"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-[#718096] uppercase tracking-wide mb-1.5 block">
+                    Last Name *
+                  </label>
+                  <Input
+                    placeholder="Nkosi"
+                    value={inviteForm.lastName}
+                    onChange={(e) => setInviteForm({ ...inviteForm, lastName: e.target.value })}
+                    className="bg-[#F4F6F8] border-[#E2E8F0] rounded-xl text-sm h-11"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-[#718096] uppercase tracking-wide mb-1.5 block">
+                  Work Email *
+                </label>
+                <Input
+                  type="email"
+                  placeholder="thabo@company.co.za"
+                  value={inviteForm.email}
+                  onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
+                  className="bg-[#F4F6F8] border-[#E2E8F0] rounded-xl text-sm h-11"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-[#718096] uppercase tracking-wide mb-1.5 block">
+                  Role *
+                </label>
+                <select
+                  value={inviteForm.role}
+                  onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value })}
+                  className="w-full h-11 px-3 rounded-xl border border-[#E2E8F0] bg-[#F4F6F8] text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#D4A017]"
+                >
+                  {roles.map((r) => (
+                    <option key={r} value={r}>
+                      {r.charAt(0).toUpperCase() + r.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="p-3 rounded-xl bg-[#FFF8EC] border border-[#F5E0A0]">
+                <div className="flex items-center gap-2 mb-1">
+                  <Shield size={13} className="text-[#D4A017]" />
+                  <p className="text-xs font-semibold text-[#D4A017] capitalize">
+                    {inviteForm.role} permissions
+                  </p>
+                </div>
+                <p className="text-xs text-[#718096]">
+                  {inviteForm.role === "admin"     && "Full access to all features including user management."}
+                  {inviteForm.role === "initiator" && "Can create and submit payment requests."}
+                  {inviteForm.role === "reviewer"  && "Can review and flag payments for approval."}
+                  {inviteForm.role === "approver"  && "Can approve or reject payment requests."}
+                  {inviteForm.role === "executor"  && "Can execute approved payments to the bank."}
+                  {inviteForm.role === "viewer"    && "Read-only access to dashboard and reports."}
+                </p>
+              </div>
+            </div>
+
+            <div className="px-6 py-4 border-t border-[#E2E8F0] flex gap-3">
+              <button
+                onClick={() => { setShowInviteForm(false); setInviteError(""); setInviteSuccess(""); }}
+                className="flex-1 h-11 rounded-xl border border-[#E2E8F0] text-sm font-semibold text-[#718096]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleInviteUser}
+                disabled={inviting}
+                className="flex-1 h-11 rounded-xl bg-[#D4A017] text-white text-sm font-semibold hover:bg-[#B8860B] transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+              >
+                {inviting ? (
+                  <><Loader2 size={14} className="animate-spin" /> Sending…</>
+                ) : (
+                  <><Mail size={14} /> Send Invitation</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add User Modal */}
       {showAddForm && (
