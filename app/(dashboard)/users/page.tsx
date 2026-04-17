@@ -47,6 +47,33 @@ function formatDate(dateStr: string) {
   });
 }
 
+// Clipboard helper — tries modern API first, falls back to execCommand
+async function copyToClipboard(text: string): Promise<boolean> {
+  // Modern API (requires HTTPS + user gesture — may be blocked)
+  if (navigator?.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // fall through to legacy method
+    }
+  }
+  // Legacy fallback: create an off-screen textarea, select it, copy
+  try {
+    const el = document.createElement("textarea");
+    el.value = text;
+    el.style.cssText = "position:fixed;top:-9999px;left:-9999px;opacity:0;";
+    document.body.appendChild(el);
+    el.focus();
+    el.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(el);
+    return ok;
+  } catch {
+    return false;
+  }
+}
+
 export default function UsersPage() {
   const { role: currentRole } = useSessionStore();
   const [users, setUsers] = useState<any[]>([]);
@@ -185,15 +212,22 @@ export default function UsersPage() {
   }
 
   async function handleCopyInviteLink(user: any) {
-    // If we already have the token, build the URL directly
-    if (user.inviteToken) {
-      const url = `${window.location.origin}/invite?token=${user.inviteToken}`;
-      await navigator.clipboard.writeText(url);
-      setCopiedId(user.id);
-      setTimeout(() => setCopiedId(null), 3000);
+    const url = user.inviteToken
+      ? `${window.location.origin}/invite?token=${user.inviteToken}`
+      : null;
+
+    if (url) {
+      const ok = await copyToClipboard(url);
+      if (ok) {
+        setCopiedId(user.id);
+        setTimeout(() => setCopiedId(null), 3000);
+      } else {
+        // Last resort: show the URL so the admin can copy it manually
+        prompt("Clipboard access was denied. Copy the link below:", url);
+      }
       return;
     }
-    // Otherwise regenerate via API
+    // No token locally — regenerate via API
     await handleResendInvite(user.id, /* copyOnly */ true);
   }
 
@@ -208,13 +242,20 @@ export default function UsersPage() {
       const data = await res.json();
       if (!res.ok) { alert(data.error ?? "Failed to resend invite."); return; }
 
+      const ok = await copyToClipboard(data.inviteUrl);
       if (copyOnly) {
-        await navigator.clipboard.writeText(data.inviteUrl);
-        setCopiedId(userId);
-        setTimeout(() => setCopiedId(null), 3000);
+        if (ok) {
+          setCopiedId(userId);
+          setTimeout(() => setCopiedId(null), 3000);
+        } else {
+          prompt("Clipboard access was denied. Copy the link below:", data.inviteUrl);
+        }
       } else {
-        alert(`Invite resent${data.inviteUrl ? "\n\nLink copied to clipboard as backup:\n" + data.inviteUrl : ""}`);
-        await navigator.clipboard.writeText(data.inviteUrl).catch(() => null);
+        if (ok) {
+          alert("Invite email resent and link copied to clipboard as backup.");
+        } else {
+          prompt("Invite resent. Clipboard access denied — copy the link below:", data.inviteUrl);
+        }
       }
       fetchUsers();
     } catch {
