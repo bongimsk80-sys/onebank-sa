@@ -63,7 +63,10 @@ export default function SettingsPage() {
     <div className="max-w-2xl mx-auto space-y-5">
 
       {/* Profile Card */}
-      <Card className="p-4 rounded-xl border border-[#E2E8F0] bg-white shadow-sm">
+      <Card
+        className="p-4 rounded-xl border border-[#E2E8F0] bg-white shadow-sm cursor-pointer hover:bg-[#F4F6F8] transition-colors"
+        onClick={() => router.push("/settings/profile")}
+      >
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-full bg-[#1B4332] flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
             {name

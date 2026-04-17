@@ -68,6 +68,7 @@ export const config = {
     "/erp",
     "/users",
     "/settings/:path*",
+    "/settings/profile",
     "/feedback",
     "/onboarding",
     // Public auth-flow routes (so logged-in users are redirected away)

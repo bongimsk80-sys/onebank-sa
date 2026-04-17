@@ -12,7 +12,8 @@ interface SessionStore {
   role: Role | null;
   name: string | null;
   email: string | null;
-  setSession: (role: Role, name: string, email: string) => void;
+  orgName: string | null;
+  setSession: (role: Role, name: string, email: string, orgName?: string | null) => void;
   clearSession: () => void;
 }
 
@@ -20,8 +21,9 @@ export const useSessionStore = create<SessionStore>((set) => ({
   role: null,
   name: null,
   email: null,
-  setSession: (role, name, email) => set({ role, name, email }),
-  clearSession: () => set({ role: null, name: null, email: null }),
+  orgName: null,
+  setSession: (role, name, email, orgName = null) => set({ role, name, email, orgName }),
+  clearSession: () => set({ role: null, name: null, email: null, orgName: null }),
 }));
 
 // Role permissions

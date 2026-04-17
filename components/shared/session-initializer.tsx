@@ -15,7 +15,8 @@ export default function SessionInitializer() {
       setSession(
         user.role,
         user.name ?? "",
-        user.email ?? ""
+        user.email ?? "",
+        user.orgName ?? null
       );
     } else if (status === "unauthenticated") {
       clearSession();

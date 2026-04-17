@@ -272,29 +272,32 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Divider */}
-          <div className="flex items-center gap-3 my-6">
-            <div className="flex-1 h-px bg-[#E2E8F0]" />
-            <span className="text-xs text-[#A0AEC0]">Demo accounts</span>
-            <div className="flex-1 h-px bg-[#E2E8F0]" />
-          </div>
+          {/* Demo accounts — only shown when NEXT_PUBLIC_SHOW_DEMO_ACCOUNTS=true */}
+          {process.env.NEXT_PUBLIC_SHOW_DEMO_ACCOUNTS === "true" && (
+            <>
+              <div className="flex items-center gap-3 my-6">
+                <div className="flex-1 h-px bg-[#E2E8F0]" />
+                <span className="text-xs text-[#A0AEC0]">Demo accounts</span>
+                <div className="flex-1 h-px bg-[#E2E8F0]" />
+              </div>
 
-          {/* Demo Users */}
-          <div className="grid grid-cols-2 gap-2">
-            {demoUsers.map((u) => (
-              <button
-                key={u.role}
-                type="button"
-                onClick={() => handleDemoLogin(u.email, u.password)}
-                className="px-3 py-2.5 rounded-xl border border-[#E2E8F0] bg-white text-xs font-semibold text-[#1A202C] hover:bg-[#1B4332] hover:text-white hover:border-[#1B4332] transition-all text-left"
-              >
-                <span className="block text-[10px] text-[#A0AEC0] font-normal mb-0.5">
-                  Login as
-                </span>
-                {u.role}
-              </button>
-            ))}
-          </div>
+              <div className="grid grid-cols-2 gap-2">
+                {demoUsers.map((u) => (
+                  <button
+                    key={u.role}
+                    type="button"
+                    onClick={() => handleDemoLogin(u.email, u.password)}
+                    className="px-3 py-2.5 rounded-xl border border-[#E2E8F0] bg-white text-xs font-semibold text-[#1A202C] hover:bg-[#1B4332] hover:text-white hover:border-[#1B4332] transition-all text-left"
+                  >
+                    <span className="block text-[10px] text-[#A0AEC0] font-normal mb-0.5">
+                      Login as
+                    </span>
+                    {u.role}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
 
           {/* Register link */}
           <p className="text-sm text-[#718096] mt-6 text-center">

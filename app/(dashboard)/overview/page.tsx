@@ -45,7 +45,7 @@ export default function OverviewPage() {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const { name } = useSessionStore();
+  const { name, orgName } = useSessionStore();
   const [visibleWidgets, setVisibleWidgets] = useState<string[]>([]);
 
   useEffect(() => {
@@ -163,7 +163,13 @@ export default function OverviewPage() {
           {getGreeting()}, {name?.split(" ")[0] ?? "there"}
         </h2>
         <p className="text-sm text-[#718096]">
-          Here is your cash performance overview
+          {orgName ? (
+            <>
+              <span className="font-semibold text-[#1B4332]">{orgName}</span>
+              {" · "}
+            </>
+          ) : null}
+          Cash performance overview
         </p>
       </div>
 
