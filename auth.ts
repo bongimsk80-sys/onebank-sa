@@ -69,8 +69,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session: updateData }) {
+      // ── First login: populate all custom fields from the user object ────────
       if (user) {
+        token.name                   = (user as any).name  ?? null;
+        token.email                  = (user as any).email ?? null;
         token.role                   = (user as any).role;
         token.id                     = (user.id as string) ?? "";
         token.organisationId         = (user as any).organisationId ?? null;
@@ -78,10 +81,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.hasCompletedOnboarding = (user as any).hasCompletedOnboarding ?? false;
         token.orgName                = (user as any).orgName ?? null;
       }
+
+      // ── updateSession() calls: merge only the fields that were passed ───────
+      if (trigger === "update" && updateData) {
+        if (updateData.hasCompletedOnboarding !== undefined)
+          token.hasCompletedOnboarding = updateData.hasCompletedOnboarding;
+        if (updateData.name !== undefined)
+          token.name = updateData.name;
+        if (updateData.orgName !== undefined)
+          token.orgName = updateData.orgName;
+      }
+
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
+        // Explicitly surface all custom fields — never rely on NextAuth's
+        // auto-population since it can silently drop values on token refresh.
+        session.user.name                            = (token.name as string) ?? null;
+        session.user.email                           = (token.email as string) ?? null;
         (session.user as any).role                   = token.role;
         (session.user as any).id                     = token.id;
         (session.user as any).organisationId         = token.organisationId ?? null;

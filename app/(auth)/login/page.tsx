@@ -68,7 +68,9 @@ export default function LoginPage() {
       // Read fresh session to determine redirect destination.
       const session = await getSession();
       const u = (session?.user as any) ?? {};
-      if (u.organisationId && !u.hasCompletedOnboarding) {
+      // Only admin users should go through onboarding — other roles join an
+      // existing org and should land directly on the dashboard.
+      if (u.role === "admin" && u.organisationId && !u.hasCompletedOnboarding) {
         router.push("/onboarding");
       } else {
         router.push("/overview");

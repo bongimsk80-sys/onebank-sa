@@ -48,11 +48,13 @@ export async function POST(req: NextRequest) {
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        name:        fullName,
-        password:    hashedPassword,
-        isVerified:  true,
-        isActive:    true,
-        inviteToken: null,
+        name:                   fullName,
+        password:               hashedPassword,
+        isVerified:             true,
+        isActive:               true,
+        inviteToken:            null,
+        // Invited users join an existing org — they skip onboarding entirely.
+        hasCompletedOnboarding: true,
       },
     });
 

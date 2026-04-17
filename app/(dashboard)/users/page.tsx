@@ -365,7 +365,7 @@ export default function UsersPage() {
                         <p className="text-sm font-semibold text-[#1A202C] truncate">
                           {user.name}
                         </p>
-                        {!user.isVerified && user.inviteToken && (
+                        {!user.isActive && !user.isVerified && (
                           <span className="flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-[#FFF8EC] text-[#D4A017] border border-[#D4A017]/20">
                             <Clock size={9} /> Invite Pending
                           </span>
@@ -400,7 +400,7 @@ export default function UsersPage() {
                   {isAdmin && (
                     <div className="flex items-center gap-1 flex-shrink-0 ml-2">
                       {/* Pending invite: copy link + resend buttons */}
-                      {!user.isVerified && user.inviteToken && (
+                      {!user.isActive && !user.isVerified && (
                         <>
                           <button
                             onClick={() => handleCopyInviteLink(user)}

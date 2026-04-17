@@ -178,6 +178,16 @@ export default function OnboardingPage() {
 
   const orgName = (session?.user as any)?.orgName ?? "your organisation";
 
+  // ── Role guard: only admins run onboarding ─────────────────────────────────
+  // Non-admin users (e.g. invited viewers) should never land here.
+  useEffect(() => {
+    if (!session) return; // still loading
+    const role = (session.user as any)?.role;
+    if (role && role !== "admin") {
+      router.replace("/overview");
+    }
+  }, [session, router]);
+
   // ── Bank helpers ────────────────────────────────────────────────────────────
   function toggleBank(id: string) {
     setBanks((prev) => ({

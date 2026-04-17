@@ -74,10 +74,10 @@ export default function SettingsPage() {
               : "U"}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-base font-bold text-[#1A202C]">{name ?? "User"}</p>
-            <p className="text-sm text-[#718096] truncate">{email ?? ""}</p>
+            <p className="text-base font-bold text-[#1A202C]">{name || "User"}</p>
+            <p className="text-sm text-[#718096] truncate">{email || ""}</p>
             <span className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-lg bg-[#F0FDF4] text-[#27AE60]">
-              {role ?? "viewer"}
+              {role || "viewer"}
             </span>
           </div>
           <ChevronRight size={16} className="text-[#A0AEC0] flex-shrink-0" />

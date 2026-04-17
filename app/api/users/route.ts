@@ -142,6 +142,9 @@ export async function PATCH(request: Request) {
         ...(data.role ? { role: data.role } : {}),
         ...(typeof data.isActive === "boolean" ? { isActive: data.isActive } : {}),
         ...(data.name ? { name: data.name } : {}),
+        // When manually activating a user, also mark them as verified and
+        // clear any pending invite token so the "Invite Pending" badge disappears.
+        ...(data.isActive === true ? { isVerified: true, inviteToken: null } : {}),
       },
       select: {
         id: true,

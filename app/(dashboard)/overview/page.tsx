@@ -160,7 +160,7 @@ export default function OverviewPage() {
       {/* Header */}
       <div>
         <h2 className="text-xl font-bold text-[#1A202C]">
-          {getGreeting()}, {name?.split(" ")[0] ?? "there"}
+          {getGreeting()}, {(name?.split(" ")[0]) || "there"}
         </h2>
         <p className="text-sm text-[#718096]">
           {orgName ? (
