@@ -2,23 +2,29 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useSessionStore } from "@/store/session-store";
-import { ChevronLeft, Loader2, CheckCircle, Pencil, Building2, Mail, Shield, Calendar } from "lucide-react";
+import {
+  ChevronLeft, ChevronRight, Loader2, CheckCircle,
+  Pencil, Building2, Mail, Shield, Calendar, AlertTriangle,
+} from "lucide-react";
+
+type EditField = "name" | "email" | null;
 
 export default function ProfilePage() {
-  const router  = useRouter();
+  const router = useRouter();
   const { update: updateSession } = useSession();
-  const { name: storeName, email, role, orgName, setSession } = useSessionStore();
+  const { role, orgName, setSession } = useSessionStore();
 
   const [profile,   setProfile]   = useState<any>(null);
   const [loading,   setLoading]   = useState(true);
-  const [editing,   setEditing]   = useState(false);
+  const [editing,   setEditing]   = useState<EditField>(null);
   const [newName,   setNewName]   = useState("");
+  const [newEmail,  setNewEmail]  = useState("");
   const [saving,    setSaving]    = useState(false);
-  const [success,   setSuccess]   = useState(false);
+  const [success,   setSuccess]   = useState<string | null>(null);
   const [error,     setError]     = useState("");
 
   useEffect(() => {
@@ -27,38 +33,62 @@ export default function ProfilePage() {
       .then((data) => {
         setProfile(data);
         setNewName(data.name ?? "");
+        setNewEmail(data.email ?? "");
       })
       .catch(() => setError("Failed to load profile."))
       .finally(() => setLoading(false));
   }, []);
 
-  async function handleSave() {
-    if (!newName.trim() || newName.trim() === profile?.name) {
-      setEditing(false);
-      return;
-    }
-    setSaving(true);
+  function cancelEdit() {
+    setEditing(null);
+    setNewName(profile?.name ?? "");
+    setNewEmail(profile?.email ?? "");
     setError("");
+  }
+
+  async function handleSave() {
+    setError("");
+    const payload: Record<string, string> = {};
+
+    if (editing === "name") {
+      if (!newName.trim() || newName.trim() === profile?.name) { cancelEdit(); return; }
+      payload.name = newName.trim();
+    }
+    if (editing === "email") {
+      const trimmed = newEmail.trim().toLowerCase();
+      if (!trimmed || trimmed === profile?.email) { cancelEdit(); return; }
+      payload.email = trimmed;
+    }
+
+    setSaving(true);
     try {
       const res  = await fetch("/api/users/me", {
         method:  "PATCH",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ name: newName.trim() }),
+        body:    JSON.stringify(payload),
       });
       const data = await res.json();
+
       if (!res.ok) {
         setError(data.error ?? "Could not save changes.");
         return;
       }
-      // Update local state
-      setProfile((p: any) => ({ ...p, name: newName.trim() }));
-      // Sync Zustand store so sidebar/overview reflect the change immediately
-      setSession(role!, newName.trim(), email!, orgName);
-      // Sync NextAuth session token
-      await updateSession({ name: newName.trim() });
-      setEditing(false);
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
+
+      if (data.emailChanged) {
+        // Email changed — must sign out so NextAuth re-issues a token with the new email
+        await signOut({ callbackUrl: "/login" });
+        return;
+      }
+
+      // Name change: update store + session in place
+      const updatedName = data.user.name;
+      setProfile((p: any) => ({ ...p, name: updatedName }));
+      setSession(role!, updatedName, profile.email, orgName);
+      await updateSession({ name: updatedName });
+
+      setEditing(null);
+      setSuccess("Name updated successfully.");
+      setTimeout(() => setSuccess(null), 4000);
     } catch {
       setError("Network error. Please try again.");
     } finally {
@@ -71,8 +101,12 @@ export default function ProfilePage() {
     : "U";
 
   const joinedDate = profile?.joinedAt
-    ? new Date(profile.joinedAt).toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" })
+    ? new Date(profile.joinedAt).toLocaleDateString("en-ZA", {
+        day: "numeric", month: "long", year: "numeric",
+      })
     : null;
+
+  const isAdmin = profile?.role === "admin";
 
   return (
     <div className="max-w-2xl mx-auto space-y-5">
@@ -94,28 +128,45 @@ export default function ProfilePage() {
         </Card>
       ) : (
         <>
-          {/* Avatar + Name block */}
+          {/* Avatar block */}
           <Card className="p-6 rounded-xl border border-[#E2E8F0] bg-white shadow-sm">
             <div className="flex flex-col items-center text-center gap-3">
               <div className="w-20 h-20 rounded-full bg-[#1B4332] flex items-center justify-center text-white font-bold text-2xl">
                 {initials}
               </div>
+              <div>
+                <p className="text-lg font-bold text-[#1A202C]">{profile?.name}</p>
+                <span className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-lg bg-[#F0FDF4] text-[#27AE60]">
+                  {profile?.role ?? "viewer"}
+                </span>
+              </div>
+              {success && (
+                <div className="flex items-center gap-1.5 text-xs text-[#27AE60] font-semibold">
+                  <CheckCircle size={14} /> {success}
+                </div>
+              )}
+            </div>
+          </Card>
 
-              {editing ? (
-                <div className="w-full max-w-xs space-y-3">
+          {/* Editable fields */}
+          <Card className="rounded-xl border border-[#E2E8F0] bg-white shadow-sm divide-y divide-[#E2E8F0]">
+
+            {/* ── Name ── */}
+            <div className="px-5 py-4">
+              {editing === "name" ? (
+                <div className="space-y-3">
+                  <p className="text-[11px] text-[#A0AEC0] font-medium uppercase tracking-wide">Full Name</p>
                   <Input
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
-                    className="text-center bg-white border-[#E2E8F0] rounded-xl text-sm h-11"
+                    className="bg-white border-[#E2E8F0] rounded-xl text-sm h-11"
                     placeholder="Your full name"
                     autoFocus
                   />
-                  {error && (
-                    <p className="text-xs text-[#C0392B]">{error}</p>
-                  )}
+                  {error && <p className="text-xs text-[#C0392B]">{error}</p>}
                   <div className="flex gap-2">
                     <button
-                      onClick={() => { setEditing(false); setNewName(profile?.name ?? ""); setError(""); }}
+                      onClick={cancelEdit}
                       className="flex-1 h-10 rounded-xl border border-[#E2E8F0] text-sm font-semibold text-[#718096] hover:bg-[#F4F6F8] transition-colors"
                     >
                       Cancel
@@ -125,78 +176,136 @@ export default function ProfilePage() {
                       disabled={saving}
                       className="flex-1 h-10 bg-[#1B4332] text-white rounded-xl text-sm font-semibold hover:bg-[#2D6A4F] transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5"
                     >
-                      {saving ? <Loader2 size={14} className="animate-spin" /> : null}
+                      {saving && <Loader2 size={14} className="animate-spin" />}
                       Save
                     </button>
                   </div>
                 </div>
               ) : (
-                <>
-                  <div>
-                    <p className="text-lg font-bold text-[#1A202C]">{profile?.name}</p>
-                    <span className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-lg bg-[#F0FDF4] text-[#27AE60]">
-                      {profile?.role ?? "viewer"}
-                    </span>
+                <div
+                  className="flex items-center gap-4 cursor-pointer group"
+                  onClick={() => { setEditing("name"); setError(""); }}
+                >
+                  <div className="w-8 h-8 rounded-lg bg-[#F4F6F8] flex items-center justify-center flex-shrink-0">
+                    <Pencil size={14} className="text-[#1B4332]" />
                   </div>
-                  <button
-                    onClick={() => setEditing(true)}
-                    className="flex items-center gap-1.5 text-xs font-semibold text-[#1B4332] hover:underline"
-                  >
-                    <Pencil size={12} />
-                    Edit name
-                  </button>
-                  {success && (
-                    <div className="flex items-center gap-1.5 text-xs text-[#27AE60] font-semibold">
-                      <CheckCircle size={14} />
-                      Name updated successfully
-                    </div>
-                  )}
-                </>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] text-[#A0AEC0] font-medium uppercase tracking-wide">Full Name</p>
+                    <p className="text-sm font-semibold text-[#1A202C] truncate">{profile?.name}</p>
+                  </div>
+                  <ChevronRight size={14} className="text-[#A0AEC0] group-hover:text-[#1B4332] transition-colors" />
+                </div>
               )}
             </div>
-          </Card>
 
-          {/* Details */}
-          <Card className="rounded-xl border border-[#E2E8F0] bg-white shadow-sm divide-y divide-[#E2E8F0]">
-            {[
-              {
-                icon: Mail,
-                label: "Email address",
-                value: profile?.email,
-              },
-              {
-                icon: Building2,
-                label: "Organisation",
-                value: profile?.orgName ?? "—",
-              },
-              {
-                icon: Shield,
-                label: "Role",
-                value: profile?.role
-                  ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1)
-                  : "—",
-              },
-              ...(joinedDate ? [{
-                icon: Calendar,
-                label: "Member since",
-                value: joinedDate,
-              }] : []),
-            ].map(({ icon: Icon, label, value }) => (
-              <div key={label} className="flex items-center gap-4 px-5 py-4">
+            {/* ── Email ── */}
+            <div className="px-5 py-4">
+              {editing === "email" ? (
+                <div className="space-y-3">
+                  <p className="text-[11px] text-[#A0AEC0] font-medium uppercase tracking-wide">Email Address</p>
+                  <Input
+                    type="email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    className="bg-white border-[#E2E8F0] rounded-xl text-sm h-11"
+                    placeholder="new@email.com"
+                    autoFocus
+                  />
+                  {/* Warning */}
+                  <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-[#FFF8EC] border border-[#D4A017]/30">
+                    <AlertTriangle size={14} className="text-[#D4A017] flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-[#92650A] leading-relaxed">
+                      Changing your email will sign you out immediately. Use the new address to log back in.
+                    </p>
+                  </div>
+                  {error && <p className="text-xs text-[#C0392B]">{error}</p>}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={cancelEdit}
+                      className="flex-1 h-10 rounded-xl border border-[#E2E8F0] text-sm font-semibold text-[#718096] hover:bg-[#F4F6F8] transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSave}
+                      disabled={saving}
+                      className="flex-1 h-10 bg-[#1B4332] text-white rounded-xl text-sm font-semibold hover:bg-[#2D6A4F] transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5"
+                    >
+                      {saving && <Loader2 size={14} className="animate-spin" />}
+                      Save &amp; Sign Out
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  className="flex items-center gap-4 cursor-pointer group"
+                  onClick={() => { setEditing("email"); setError(""); }}
+                >
+                  <div className="w-8 h-8 rounded-lg bg-[#F4F6F8] flex items-center justify-center flex-shrink-0">
+                    <Mail size={14} className="text-[#1B4332]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] text-[#A0AEC0] font-medium uppercase tracking-wide">Email Address</p>
+                    <p className="text-sm font-semibold text-[#1A202C] truncate">{profile?.email}</p>
+                  </div>
+                  <ChevronRight size={14} className="text-[#A0AEC0] group-hover:text-[#1B4332] transition-colors" />
+                </div>
+              )}
+            </div>
+
+            {/* ── Organisation (read-only) ── */}
+            <div className="flex items-center gap-4 px-5 py-4">
+              <div className="w-8 h-8 rounded-lg bg-[#F4F6F8] flex items-center justify-center flex-shrink-0">
+                <Building2 size={14} className="text-[#1B4332]" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] text-[#A0AEC0] font-medium uppercase tracking-wide">Organisation</p>
+                <p className="text-sm font-semibold text-[#1A202C] truncate">{profile?.orgName ?? "—"}</p>
+              </div>
+            </div>
+
+            {/* ── Role (read-only) ── */}
+            <div className="flex items-center gap-4 px-5 py-4">
+              <div className="w-8 h-8 rounded-lg bg-[#F4F6F8] flex items-center justify-center flex-shrink-0">
+                <Shield size={14} className="text-[#1B4332]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] text-[#A0AEC0] font-medium uppercase tracking-wide">Role</p>
+                <p className="text-sm font-semibold text-[#1A202C]">
+                  {profile?.role
+                    ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1)
+                    : "—"}
+                </p>
+              </div>
+              {isAdmin && (
+                <button
+                  onClick={() => router.push("/users")}
+                  className="text-[11px] font-semibold text-[#1B4332] hover:underline whitespace-nowrap"
+                >
+                  Manage roles →
+                </button>
+              )}
+            </div>
+
+            {/* ── Member since (read-only) ── */}
+            {joinedDate && (
+              <div className="flex items-center gap-4 px-5 py-4">
                 <div className="w-8 h-8 rounded-lg bg-[#F4F6F8] flex items-center justify-center flex-shrink-0">
-                  <Icon size={15} className="text-[#1B4332]" />
+                  <Calendar size={14} className="text-[#1B4332]" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[11px] text-[#A0AEC0] font-medium uppercase tracking-wide">{label}</p>
-                  <p className="text-sm font-semibold text-[#1A202C] truncate">{value}</p>
+                  <p className="text-[11px] text-[#A0AEC0] font-medium uppercase tracking-wide">Member Since</p>
+                  <p className="text-sm font-semibold text-[#1A202C]">{joinedDate}</p>
                 </div>
               </div>
-            ))}
+            )}
           </Card>
 
-          {/* Note about email */}
-          <p className="text-xs text-[#A0AEC0] text-center px-4">
-            To change your email address or role, contact your organisation admin.
+          {/* Contextual footer note */}
+          <p className="text-xs text-[#A0AEC0] text-center px-4 pb-2">
+            {isAdmin
+              ? "Your role is protected. Use Users & Roles to manage your team's permissions."
+              : "To change your role, ask your organisation admin."}
           </p>
         </>
       )}
