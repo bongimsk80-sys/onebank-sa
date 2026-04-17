@@ -33,9 +33,17 @@ export default auth((req) => {
   const isPublicAuthPage = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
   const isProtectedPage = PROTECTED_PATHS.some((p) => pathname.startsWith(p));
 
-  // Redirect already-logged-in users away from auth pages (except /invite — allow
-  // logged-in admins to preview the invite acceptance flow)
-  if (isLoggedIn && isPublicAuthPage && !pathname.startsWith("/invite")) {
+  // Redirect already-logged-in users away from auth pages.
+  // Exceptions:
+  //   /invite        — admins may preview the invite acceptance flow
+  //   /reset-password — a logged-in user may still need to reset their password
+  //                     (e.g. clicked the email link while another session is open)
+  if (
+    isLoggedIn &&
+    isPublicAuthPage &&
+    !pathname.startsWith("/invite") &&
+    !pathname.startsWith("/reset-password")
+  ) {
     return NextResponse.redirect(new URL("/overview", nextUrl));
   }
 
