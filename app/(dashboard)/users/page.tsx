@@ -16,6 +16,9 @@ import {
   ChevronRight,
   Mail,
   Loader2,
+  Link2,
+  RefreshCw,
+  Clock,
 } from "lucide-react";
 
 const roles = [
@@ -56,6 +59,8 @@ export default function UsersPage() {
   const [inviteError,    setInviteError]    = useState("");
   const [inviteSuccess,  setInviteSuccess]  = useState("");
   const [inviting,       setInviting]       = useState(false);
+  const [resendingId,    setResendingId]    = useState<string | null>(null);
+  const [copiedId,       setCopiedId]       = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -179,6 +184,46 @@ export default function UsersPage() {
     }
   }
 
+  async function handleCopyInviteLink(user: any) {
+    // If we already have the token, build the URL directly
+    if (user.inviteToken) {
+      const url = `${window.location.origin}/invite?token=${user.inviteToken}`;
+      await navigator.clipboard.writeText(url);
+      setCopiedId(user.id);
+      setTimeout(() => setCopiedId(null), 3000);
+      return;
+    }
+    // Otherwise regenerate via API
+    await handleResendInvite(user.id, /* copyOnly */ true);
+  }
+
+  async function handleResendInvite(userId: string, copyOnly = false) {
+    setResendingId(userId);
+    try {
+      const res  = await fetch("/api/users/resend-invite", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ userId }),
+      });
+      const data = await res.json();
+      if (!res.ok) { alert(data.error ?? "Failed to resend invite."); return; }
+
+      if (copyOnly) {
+        await navigator.clipboard.writeText(data.inviteUrl);
+        setCopiedId(userId);
+        setTimeout(() => setCopiedId(null), 3000);
+      } else {
+        alert(`Invite resent${data.inviteUrl ? "\n\nLink copied to clipboard as backup:\n" + data.inviteUrl : ""}`);
+        await navigator.clipboard.writeText(data.inviteUrl).catch(() => null);
+      }
+      fetchUsers();
+    } catch {
+      alert("Network error. Please try again.");
+    } finally {
+      setResendingId(null);
+    }
+  }
+
   const filtered = users.filter(
     (u) =>
       u.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -275,11 +320,16 @@ export default function UsersPage() {
 
                     {/* Info */}
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <p className="text-sm font-semibold text-[#1A202C] truncate">
                           {user.name}
                         </p>
-                        {!user.isActive && (
+                        {!user.isVerified && user.inviteToken && (
+                          <span className="flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-[#FFF8EC] text-[#D4A017] border border-[#D4A017]/20">
+                            <Clock size={9} /> Invite Pending
+                          </span>
+                        )}
+                        {!user.isActive && user.isVerified && (
                           <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-[#F4F6F8] text-[#A0AEC0]">
                             Inactive
                           </span>
@@ -308,6 +358,32 @@ export default function UsersPage() {
                   {/* Actions */}
                   {isAdmin && (
                     <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+                      {/* Pending invite: copy link + resend buttons */}
+                      {!user.isVerified && user.inviteToken && (
+                        <>
+                          <button
+                            onClick={() => handleCopyInviteLink(user)}
+                            className="w-8 h-8 rounded-xl bg-[#FFF8EC] flex items-center justify-center hover:bg-[#F5E0A0] transition-colors"
+                            title={copiedId === user.id ? "Copied!" : "Copy invite link"}
+                          >
+                            {copiedId === user.id
+                              ? <span className="text-[9px] font-bold text-[#D4A017]">✓</span>
+                              : <Link2 size={13} className="text-[#D4A017]" />
+                            }
+                          </button>
+                          <button
+                            onClick={() => handleResendInvite(user.id)}
+                            disabled={resendingId === user.id}
+                            className="w-8 h-8 rounded-xl bg-[#FFF8EC] flex items-center justify-center hover:bg-[#F5E0A0] transition-colors disabled:opacity-50"
+                            title="Resend invite email"
+                          >
+                            {resendingId === user.id
+                              ? <Loader2 size={13} className="text-[#D4A017] animate-spin" />
+                              : <RefreshCw size={13} className="text-[#D4A017]" />
+                            }
+                          </button>
+                        </>
+                      )}
                       <button
                         onClick={() => setEditingUser(user)}
                         className="w-8 h-8 rounded-xl bg-[#EFF6FF] flex items-center justify-center hover:bg-[#BFDBFE] transition-colors"

@@ -27,6 +27,8 @@ export async function GET() {
   const orgId = getOrgId(session);
 
   try {
+    const isAdmin = (session.user as any).role === "admin";
+
     const users = await prisma.user.findMany({
       where: { ...(orgId ? { organisationId: orgId } : {}) },
       orderBy: { createdAt: "asc" },
@@ -36,7 +38,10 @@ export async function GET() {
         email: true,
         role: true,
         isActive: true,
+        isVerified: true,
         createdAt: true,
+        // Expose invite token to admins only so they can share the link manually
+        ...(isAdmin ? { inviteToken: true } : {}),
       },
     });
     return NextResponse.json({ users });
