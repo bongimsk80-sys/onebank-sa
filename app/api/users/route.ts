@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, requireRole, getOrgId } from "@/lib/api-auth";
 import { z } from "zod";
@@ -81,13 +82,20 @@ export async function POST(request: Request) {
       );
     }
 
+    const hashedPassword = await bcrypt.hash(data.password, 12);
+
     const user = await prisma.user.create({
       data: {
-        name: data.name,
-        email: data.email,
-        password: data.password,
-        role: data.role,
-        isActive: true,
+        name:       data.name,
+        email:      data.email,
+        password:   hashedPassword,          // always store hashed
+        role:       data.role,
+        isActive:   true,
+        isVerified: true,                    // admin-created — no email verification needed
+        // Non-admin users join an existing org and skip onboarding.
+        // Admin users added this way are co-admins who also skip onboarding
+        // (the org is already configured by the original admin).
+        hasCompletedOnboarding: true,
         ...(orgId ? { organisationId: orgId } : {}),
       },
       select: {
