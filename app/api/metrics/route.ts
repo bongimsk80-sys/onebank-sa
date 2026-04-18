@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { recordDailySnapshot } from "@/lib/metrics";
-import { requireAuth } from "@/lib/api-auth";
+import { requireRole, resolveOrgId } from "@/lib/api-auth";
 
 export async function GET(request: Request) {
-  const session = await requireAuth();
+  // Metrics contain cross-org financial data — restrict to admin only
+  const session = await requireRole(["admin"]);
   if (session instanceof NextResponse) return session;
+  const orgId = await resolveOrgId(session);
+
+  // Narrow all queries to the admin's organisation
+  const orgFilter = orgId ? { organisationId: orgId } : {};
 
   try {
     const { searchParams } = new URL(request.url);
@@ -15,19 +20,19 @@ export async function GET(request: Request) {
     const since = new Date();
     since.setDate(since.getDate() - days);
 
-    // All-time totals
-    const allTransactions = await prisma.transaction.findMany();
-    const allPayments = await prisma.payment.findMany();
-    const allUsers = await prisma.user.count({ where: { isActive: true } });
-    const allBeneficiaries = await prisma.beneficiary.count();
-    const allAccounts = await prisma.bankAccount.findMany();
+    // All-time totals (scoped to org)
+    const allTransactions = await prisma.transaction.findMany({ where: orgFilter });
+    const allPayments     = await prisma.payment.findMany({ where: orgFilter });
+    const allUsers        = await prisma.user.count({ where: { isActive: true, ...orgFilter } });
+    const allBeneficiaries = await prisma.beneficiary.count({ where: orgFilter });
+    const allAccounts     = await prisma.bankAccount.findMany({ where: orgFilter });
 
-    // Period totals
+    // Period totals (scoped to org)
     const periodTransactions = await prisma.transaction.findMany({
-      where: { date: { gte: since } },
+      where: { date: { gte: since }, ...orgFilter },
     });
     const periodPayments = await prisma.payment.findMany({
-      where: { date: { gte: since } },
+      where: { date: { gte: since }, ...orgFilter },
     });
 
     // All-time value
@@ -152,7 +157,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST() {
-  const session = await requireAuth();
+  const session = await requireRole(["admin"]);
   if (session instanceof NextResponse) return session;
 
   try {

@@ -4,6 +4,11 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
+  // Guard: never run seed data in production — it wipes real financial records.
+  if (process.env.NODE_ENV === "production" && process.env.ALLOW_SEED_IN_PRODUCTION !== "true") {
+    console.error("❌ Refusing to seed: NODE_ENV is 'production'. Set ALLOW_SEED_IN_PRODUCTION=true to override.");
+    process.exit(1);
+  }
   // Notifications
   await prisma.notification.deleteMany();
   await prisma.notification.createMany({
@@ -59,13 +64,14 @@ async function main() {
   await prisma.payment.deleteMany();
   await prisma.beneficiary.deleteMany();
 
-  // Users
-  const hashedAdmin = await bcrypt.hash("OneBankAdmin2026!", 12);
-  const hashedApprover = await bcrypt.hash("OneBankApprove2026!", 12);
-  const hashedInitiator = await bcrypt.hash("OneBankInit2026!", 12);
-  const hashedReviewer = await bcrypt.hash("OneBankReview2026!", 12);
-  const hashedExecutor = await bcrypt.hash("OneBankExec2026!", 12);
-  const hashedViewer = await bcrypt.hash("OneBankView2026!", 12);
+  // Users — passwords sourced from env vars so they are never committed in plain text.
+  // Set SEED_ADMIN_PASSWORD etc. in your .env before running `npx prisma db seed`.
+  const hashedAdmin     = await bcrypt.hash(process.env.SEED_ADMIN_PASSWORD     ?? "OneBankAdmin2026!",    12);
+  const hashedApprover  = await bcrypt.hash(process.env.SEED_APPROVER_PASSWORD  ?? "OneBankApprove2026!",  12);
+  const hashedInitiator = await bcrypt.hash(process.env.SEED_INITIATOR_PASSWORD ?? "OneBankInit2026!",     12);
+  const hashedReviewer  = await bcrypt.hash(process.env.SEED_REVIEWER_PASSWORD  ?? "OneBankReview2026!",   12);
+  const hashedExecutor  = await bcrypt.hash(process.env.SEED_EXECUTOR_PASSWORD  ?? "OneBankExec2026!",     12);
+  const hashedViewer    = await bcrypt.hash(process.env.SEED_VIEWER_PASSWORD    ?? "OneBankView2026!",     12);
 
   await prisma.user.deleteMany();
   await prisma.user.createMany({

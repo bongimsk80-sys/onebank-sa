@@ -1,17 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
+import { requireAuth, requireRole } from "@/lib/api-auth";
 
+// GET — admin only; POST — any authenticated user
 export async function GET() {
-  try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+  const session = await requireRole(["admin"]);
+  if (session instanceof NextResponse) return session;
 
+  try {
     const feedback = await prisma.feedback.findMany({
       orderBy: { createdAt: "desc" },
     });
@@ -27,14 +23,10 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const session = await requireAuth();
+  if (session instanceof NextResponse) return session;
+
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
 
     const body = await request.json();
 
@@ -58,20 +50,17 @@ export async function POST(request: Request) {
       ? String(body.page).substring(0, 200)
       : null;
 
-    // Safe session user access
-    const user = session.user as {
-      name?: string;
-      role?: string;
-    };
+    const userName = (session.user as any)?.name as string | undefined;
+    const userRole = (session.user as any)?.role as string | undefined;
 
     const feedback = await prisma.feedback.create({
       data: {
-        rating: body.rating,
+        rating:     body.rating,
         categories: JSON.stringify(body.categories ?? []),
         message,
         page,
-        userName: user?.name ?? "Anonymous",
-        userRole: user?.role ?? "unknown",
+        userName:   userName ?? "Anonymous",
+        userRole:   userRole ?? "unknown",
       },
     });
 

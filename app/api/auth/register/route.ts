@@ -1,11 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { generateVerificationToken } from "@/lib/tokens";
+import { generateVerificationToken, verificationTokenExpiry } from "@/lib/tokens";
 import { sendVerificationEmail } from "@/lib/email";
+import { checkAuthRateLimit } from "@/lib/rate-limit";
 
 // POST /api/auth/register — public route, no auth required
 export async function POST(req: NextRequest) {
+  // Rate-limit by IP to prevent account creation spam
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+  if (!(await checkAuthRateLimit(ip))) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again in a minute." },
+      { status: 429 }
+    );
+  }
+
   try {
     // ── 1. Parse & validate body ────────────────────────────────────────────
     const body = await req.json();
@@ -70,19 +80,21 @@ export async function POST(req: NextRequest) {
       });
 
       // ── 8. Generate verification token ──────────────────────────────────
-      const verificationToken = generateVerificationToken();
+      const verificationToken  = generateVerificationToken();
+      const tokenExpiry        = verificationTokenExpiry();
 
       // ── 9. Save token on user ────────────────────────────────────────────
       const user = await tx.user.create({
         data: {
-          name:              fullName,
-          email:             trimmedEmail,
-          password:          hashedPassword,
-          role:              "admin",
-          isActive:          true,
-          isVerified:        false,
+          name:                    fullName,
+          email:                   trimmedEmail,
+          password:                hashedPassword,
+          role:                    "admin",
+          isActive:                true,
+          isVerified:              false,
           verificationToken,
-          organisationId:    org.id,
+          verificationTokenExpiry: tokenExpiry,
+          organisationId:          org.id,
         },
       });
 

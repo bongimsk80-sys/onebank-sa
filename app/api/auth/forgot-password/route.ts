@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { generateResetToken } from "@/lib/tokens";
+import { generateResetToken, resetTokenExpiry } from "@/lib/tokens";
 import { sendPasswordResetEmail } from "@/lib/email";
+import { checkAuthRateLimit } from "@/lib/rate-limit";
 
 // POST /api/auth/forgot-password — public route, no auth required
 // Always returns { success: true } to prevent email enumeration
 export async function POST(req: NextRequest) {
+  // Rate-limit by IP to prevent reset spam / email bombing
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+  if (!(await checkAuthRateLimit(ip))) {
+    return NextResponse.json({ success: true }); // don't reveal throttling on this endpoint
+  }
+
   try {
     const body  = await req.json();
     const email = (body?.email ?? "").trim().toLowerCase();
@@ -22,14 +29,13 @@ export async function POST(req: NextRequest) {
 
     // If no user: return success silently — never confirm the email exists
     if (user) {
-      const resetToken  = generateResetToken();
-      const resetExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+      const resetToken = generateResetToken();
 
       await prisma.user.update({
         where: { id: user.id },
         data: {
           resetToken,
-          resetTokenExpiry: resetExpiry,
+          resetTokenExpiry: resetTokenExpiry(), // 1 hour from now
         },
       });
 

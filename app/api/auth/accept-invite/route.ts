@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { isTokenExpired } from "@/lib/tokens";
+import { checkAuthRateLimit } from "@/lib/rate-limit";
 
 // POST /api/auth/accept-invite — public route
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+  if (!(await checkAuthRateLimit(ip))) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again in a minute." },
+      { status: 429 }
+    );
+  }
+
   try {
     const body = await req.json();
     const { token, firstName, lastName, password } = body ?? {};
@@ -25,7 +35,7 @@ export async function POST(req: NextRequest) {
     // Find user by invite token
     const user = await prisma.user.findFirst({
       where: { inviteToken: token },
-      select: { id: true, isVerified: true },
+      select: { id: true, isVerified: true, inviteTokenExpiry: true },
     });
 
     if (!user) {
@@ -42,6 +52,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Check expiry
+    if (isTokenExpired(user.inviteTokenExpiry)) {
+      return NextResponse.json(
+        { error: "This invite link has expired. Please ask your admin to resend the invitation." },
+        { status: 400 }
+      );
+    }
+
     const fullName       = `${(firstName as string).trim()} ${(lastName as string).trim()}`;
     const hashedPassword = await bcrypt.hash(password as string, 12);
 
@@ -53,6 +71,7 @@ export async function POST(req: NextRequest) {
         isVerified:             true,
         isActive:               true,
         inviteToken:            null,
+        inviteTokenExpiry:      null,
         // Invited users join an existing org — they skip onboarding entirely.
         hasCompletedOnboarding: true,
       },

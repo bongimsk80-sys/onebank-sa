@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, requireRole, getOrgId, resolveOrgId } from "@/lib/api-auth";
+import { encrypt, decrypt } from "@/lib/encryption";
 import { z } from "zod";
 
 const CreateConnectionSchema = z.object({
@@ -25,7 +26,14 @@ export async function GET() {
       where: { ...(orgId ? { organisationId: orgId } : {}) },
       orderBy: { createdAt: "desc" },
     });
-    return NextResponse.json({ connections });
+
+    // Mask the stored API key — never expose the raw (or encrypted) key to the client
+    const safeConnections = connections.map((c) => ({
+      ...c,
+      apiKey: c.apiKey ? `${c.apiKey.slice(0, 4)}${"*".repeat(12)}` : null,
+    }));
+
+    return NextResponse.json({ connections: safeConnections });
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to fetch ERP connections" },
@@ -50,18 +58,28 @@ export async function POST(request: Request) {
     }
 
     const data = result.data;
+
+    // Encrypt the API key at rest — never store plaintext credentials
+    const encryptedKey = process.env.ENCRYPTION_KEY
+      ? encrypt(data.apiKey)
+      : data.apiKey; // fallback: store as-is if key not configured (dev only)
+
     const connection = await prisma.erpConnection.create({
       data: {
-        name: data.name,
-        provider: data.provider,
-        status: "connected",
-        apiKey: data.apiKey,
-        apiUrl: data.apiUrl,
+        name:         data.name,
+        provider:     data.provider,
+        status:       "connected",
+        apiKey:       encryptedKey,
+        apiUrl:       data.apiUrl,
         lastSyncedAt: new Date(),
         ...(orgId ? { organisationId: orgId } : {}),
       },
     });
-    return NextResponse.json({ connection }, { status: 201 });
+
+    // Return masked key, not the encrypted blob
+    return NextResponse.json({
+      connection: { ...connection, apiKey: `${data.apiKey.slice(0, 4)}${"*".repeat(12)}` }
+    }, { status: 201 });
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to create ERP connection" },

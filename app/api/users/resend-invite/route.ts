@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/api-auth";
-import { generateInviteToken } from "@/lib/tokens";
+import { requireRole, resolveOrgId } from "@/lib/api-auth";
+import { generateInviteToken, inviteTokenExpiry } from "@/lib/tokens";
 import { sendTeamInviteEmail } from "@/lib/email";
 
 // POST /api/users/resend-invite — admin only
@@ -16,13 +16,16 @@ export async function POST(req: NextRequest) {
   }
 
   const adminId = (session.user as any).id as string;
+  const orgId   = await resolveOrgId(session);
+
   const admin = await prisma.user.findUnique({
     where: { id: adminId },
     select: { name: true, organisation: { select: { name: true } } },
   });
 
-  const target = await prisma.user.findUnique({
-    where: { id: userId },
+  // Scope target lookup to admin's org to prevent cross-org invite resend
+  const target = await prisma.user.findFirst({
+    where: { id: userId, ...(orgId ? { organisationId: orgId } : {}) },
     select: { email: true, role: true, isVerified: true, name: true },
   });
 
@@ -36,11 +39,11 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Generate a fresh token
+  // Generate a fresh token (reset expiry to 7 days from now)
   const newToken = generateInviteToken();
   await prisma.user.update({
     where: { id: userId },
-    data:  { inviteToken: newToken },
+    data:  { inviteToken: newToken, inviteTokenExpiry: inviteTokenExpiry() },
   });
 
   const baseUrl    = process.env.NEXTAUTH_URL ?? "https://onebank-sa-iota.vercel.app";

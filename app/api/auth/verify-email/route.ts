@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendWelcomeEmail } from "@/lib/email";
+import { isTokenExpired } from "@/lib/tokens";
+import { checkAuthRateLimit } from "@/lib/rate-limit";
 
 // GET /api/auth/verify-email?token=xxx — public route, no auth required
 export async function GET(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+  if (!(await checkAuthRateLimit(ip))) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again in a minute." },
+      { status: 429 }
+    );
+  }
+
   try {
     const token = req.nextUrl.searchParams.get("token");
 
@@ -18,6 +28,7 @@ export async function GET(req: NextRequest) {
     const user = await prisma.user.findFirst({
       where: { verificationToken: token },
       include: { organisation: true },
+      // include verificationTokenExpiry for expiry check below
     });
 
     if (!user) {
@@ -31,6 +42,14 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(
         { error: "This email has already been verified. Please sign in." },
         { status: 409 }
+      );
+    }
+
+    // Check expiry
+    if (isTokenExpired(user.verificationTokenExpiry)) {
+      return NextResponse.json(
+        { error: "This verification link has expired. Please register again or contact support." },
+        { status: 400 }
       );
     }
 

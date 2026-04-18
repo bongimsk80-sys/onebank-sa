@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, getOrgId, resolveOrgId } from "@/lib/api-auth";
+import { requireRole, getOrgId, resolveOrgId } from "@/lib/api-auth";
 import { z } from "zod";
-import { generateInviteToken } from "@/lib/tokens";
+import { generateInviteToken, inviteTokenExpiry } from "@/lib/tokens";
 import { sendTeamInviteEmail } from "@/lib/email";
 
 const BankEntrySchema = z.object({
@@ -39,7 +39,7 @@ const BANK_TYPES: Record<string, string> = {
 };
 
 export async function PATCH(request: Request) {
-  const session = await requireAuth();
+  const session = await requireRole(["admin"]);
   if (session instanceof NextResponse) return session;
 
   const userId   = (session.user as any).id as string;
@@ -91,13 +91,14 @@ export async function PATCH(request: Request) {
       const inviteToken = generateInviteToken();
       await prisma.user.create({
         data: {
-          name:        inv.email.split("@")[0],
-          email:       inv.email,
-          password:    "",
-          role:        inv.role,
-          isActive:    false,
-          isVerified:  false,
+          name:              inv.email.split("@")[0],
+          email:             inv.email,
+          password:          "",
+          role:              inv.role,
+          isActive:          false,
+          isVerified:        false,
           inviteToken,
+          inviteTokenExpiry: inviteTokenExpiry(),
           ...(orgId ? { organisationId: orgId } : {}),
         },
       });

@@ -2,9 +2,10 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Use Resend's shared test domain until onebank.co.za is verified in Resend.
-// Once the domain is verified, change this to: "OneBank SA <hello@onebank.co.za>"
-const FROM = "OneBank SA <onboarding@resend.dev>";
+// RESEND_FROM should be set to your verified sender, e.g. "OneBank SA <hello@onebank.co.za>".
+// Falls back to Resend's shared test domain for local/staging environments where
+// the custom domain hasn't been verified yet.
+const FROM = process.env.RESEND_FROM ?? "OneBank SA <onboarding@resend.dev>";
 
 // ─── Brand constants ────────────────────────────────────────────────────────
 const BRAND = {

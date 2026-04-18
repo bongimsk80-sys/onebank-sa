@@ -2,9 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { isTokenExpired } from "@/lib/tokens";
+import { checkAuthRateLimit } from "@/lib/rate-limit";
 
 // POST /api/auth/reset-password — public route, no auth required
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+  if (!(await checkAuthRateLimit(ip))) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again in a minute." },
+      { status: 429 }
+    );
+  }
+
   try {
     const body = await req.json();
     const { token, password } = body ?? {};
