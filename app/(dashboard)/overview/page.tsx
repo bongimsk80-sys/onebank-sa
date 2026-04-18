@@ -17,6 +17,7 @@ import {
   TrendingUp,
   Calendar,
 } from "lucide-react";
+import BetaBanner from "@/components/shared/beta-banner";
 
 function formatZAR(amount: number) {
   return new Intl.NumberFormat("en-ZA", {
@@ -159,6 +160,9 @@ export default function OverviewPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
+
+      {/* H4: Simulation mode banner */}
+      <BetaBanner message="Beta — Simulation Mode: All data is for demonstration. No real bank connections or fund transfers are active." />
 
       {/* Header */}
       <div>

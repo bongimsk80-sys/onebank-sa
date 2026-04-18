@@ -3,9 +3,13 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { isTokenExpired } from "@/lib/tokens";
 import { checkAuthRateLimit } from "@/lib/rate-limit";
+import { validateCsrf } from "@/lib/csrf";
 
 // POST /api/auth/accept-invite — public route
 export async function POST(req: NextRequest) {
+  const csrfError = validateCsrf(req);
+  if (csrfError) return csrfError;
+
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
   if (!(await checkAuthRateLimit(ip))) {
     return NextResponse.json(

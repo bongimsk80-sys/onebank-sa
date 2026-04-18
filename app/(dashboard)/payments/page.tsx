@@ -7,6 +7,7 @@ import { useSessionStore, rolePermissions } from "@/store/session-store";
 import AddPaymentForm from "@/components/payments/add-payment-form";
 import PaymentDetail from "@/components/payments/payment-detail";
 import ExportButton from "@/components/shared/export-button";
+import BetaBanner from "@/components/shared/beta-banner";
 import { exportPaymentsPDF, exportPaymentsExcel } from "@/lib/export";
 import {
   Clock,
@@ -115,6 +116,9 @@ export default function PaymentsPage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-5">
+
+      {/* H4: Simulation mode banner */}
+      <BetaBanner />
 
       {/* Summary Grid */}
       <div className="grid grid-cols-2 gap-2 items-start">

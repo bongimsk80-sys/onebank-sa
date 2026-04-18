@@ -4,10 +4,14 @@ import { prisma } from "@/lib/prisma";
 import { generateVerificationToken, verificationTokenExpiry } from "@/lib/tokens";
 import { sendVerificationEmail } from "@/lib/email";
 import { checkAuthRateLimit } from "@/lib/rate-limit";
+import { validateCsrf } from "@/lib/csrf";
 
 // POST /api/auth/register — public route, no auth required
 export async function POST(req: NextRequest) {
   // Rate-limit by IP to prevent account creation spam
+  const csrfError = validateCsrf(req);
+  if (csrfError) return csrfError;
+
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
   if (!(await checkAuthRateLimit(ip))) {
     return NextResponse.json(

@@ -58,6 +58,7 @@ export default function RegisterPage() {
   const [confirmPassword,  setConfirmPassword]  = useState("");
   const [showPassword,     setShowPassword]     = useState(false);
   const [showConfirm,      setShowConfirm]      = useState(false);
+  const [agreedToTos,      setAgreedToTos]      = useState(false);
   const [loading,          setLoading]          = useState(false);
   const [error,            setError]            = useState("");
   const [success,          setSuccess]          = useState(false);
@@ -69,6 +70,11 @@ export default function RegisterPage() {
     const validationError = validate({ orgName, firstName, lastName, email, password, confirmPassword });
     if (validationError) {
       setError(validationError);
+      return;
+    }
+
+    if (!agreedToTos) {
+      setError("Please accept the Terms of Service and Privacy Policy to continue.");
       return;
     }
 
@@ -387,11 +393,33 @@ export default function RegisterPage() {
                   )}
                 </div>
 
+                {/* Terms of Service agreement */}
+                <div className="flex items-start gap-2.5 pt-1">
+                  <input
+                    id="tos"
+                    type="checkbox"
+                    checked={agreedToTos}
+                    onChange={(e) => setAgreedToTos(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 accent-[#1B4332] cursor-pointer flex-shrink-0"
+                  />
+                  <label htmlFor="tos" className="text-xs text-[#718096] leading-relaxed cursor-pointer select-none">
+                    I agree to the{" "}
+                    <Link href="/terms" target="_blank" className="text-[#1B4332] font-semibold hover:underline">
+                      Terms of Service
+                    </Link>
+                    {" "}and{" "}
+                    <Link href="/privacy" target="_blank" className="text-[#1B4332] font-semibold hover:underline">
+                      Privacy Policy
+                    </Link>
+                    . I understand that during the beta, payment execution is simulated.
+                  </label>
+                </div>
+
                 {/* Submit */}
                 <button
                   type="submit"
-                  disabled={loading}
-                  className="w-full h-12 bg-[#1B4332] text-white rounded-xl font-semibold text-sm hover:bg-[#2D6A4F] transition-colors disabled:opacity-60 flex items-center justify-center gap-2 mt-2"
+                  disabled={loading || !agreedToTos}
+                  className="w-full h-12 bg-[#1B4332] text-white rounded-xl font-semibold text-sm hover:bg-[#2D6A4F] transition-colors disabled:opacity-60 flex items-center justify-center gap-2 mt-1"
                 >
                   {loading ? (
                     <>

@@ -3,10 +3,14 @@ import { prisma } from "@/lib/prisma";
 import { generateResetToken, resetTokenExpiry } from "@/lib/tokens";
 import { sendPasswordResetEmail } from "@/lib/email";
 import { checkAuthRateLimit } from "@/lib/rate-limit";
+import { validateCsrf } from "@/lib/csrf";
 
 // POST /api/auth/forgot-password — public route, no auth required
 // Always returns { success: true } to prevent email enumeration
 export async function POST(req: NextRequest) {
+  const csrfError = validateCsrf(req);
+  if (csrfError) return NextResponse.json({ success: true }); // silent — no enumeration
+
   // Rate-limit by IP to prevent reset spam / email bombing
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
   if (!(await checkAuthRateLimit(ip))) {
