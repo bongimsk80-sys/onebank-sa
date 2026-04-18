@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, getOrgId } from "@/lib/api-auth";
+import { requireAuth, getOrgId, resolveOrgId } from "@/lib/api-auth";
 
 export async function GET() {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
-  const orgId = getOrgId(session);
+  const orgId = await resolveOrgId(session);
 
   try {
     const orgFilter = orgId ? { organisationId: orgId } : {};
@@ -16,17 +16,28 @@ export async function GET() {
       prisma.transaction.findMany({ where: { ...orgFilter } }),
     ]);
 
-    // Bank balances
-    const bankBalances = accounts.map((a) => ({
-      name: a.bank,
-      value: a.balance,
-      color:
-        a.bank === "FNB" ? "#006B3C"
-        : a.bank === "Standard Bank" ? "#0033A0"
-        : a.bank === "Absa" ? "#DC0032"
-        : a.bank === "Nedbank" ? "#007B40"
-        : "#007DC5",
-      payments: payments.filter((p) => p.bank === a.bank).length,
+    // Bank balances — aggregate by bank name so duplicate accounts
+    // (e.g. two FNB accounts) don't produce duplicate chart entries.
+    const bankColorMap: Record<string, string> = {
+      "FNB":           "#006B3C",
+      "Standard Bank": "#0033A0",
+      "Absa":          "#DC0032",
+      "Nedbank":       "#007B40",
+      "Capitec":       "#007DC5",
+    };
+    const bankMap: Record<string, { value: number; payments: number }> = {};
+    accounts.forEach((a) => {
+      if (!bankMap[a.bank]) bankMap[a.bank] = { value: 0, payments: 0 };
+      bankMap[a.bank].value += a.balance;
+    });
+    payments.forEach((p) => {
+      if (p.bank && bankMap[p.bank]) bankMap[p.bank].payments += 1;
+    });
+    const bankBalances = Object.entries(bankMap).map(([name, data]) => ({
+      name,
+      value: data.value,
+      color: bankColorMap[name] ?? "#718096",
+      payments: data.payments,
     }));
 
     // Payment status breakdown

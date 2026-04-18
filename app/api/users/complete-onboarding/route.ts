@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, getOrgId } from "@/lib/api-auth";
+import { requireAuth, getOrgId, resolveOrgId } from "@/lib/api-auth";
 import { z } from "zod";
 import { generateInviteToken } from "@/lib/tokens";
 import { sendTeamInviteEmail } from "@/lib/email";
@@ -43,7 +43,7 @@ export async function PATCH(request: Request) {
   if (session instanceof NextResponse) return session;
 
   const userId   = (session.user as any).id as string;
-  const orgId    = getOrgId(session);
+  const orgId    = await resolveOrgId(session);
   const orgName  = (session.user as any).orgName as string | null;
   const userName = (session.user as any).name  as string;
 

@@ -97,6 +97,7 @@ export default function ActivityLogPage() {
       if (entityFilter !== "all") params.set("entityType", entityFilter);
 
       const res = await fetch(`/api/activity-log?${params.toString()}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setLogs(data.logs ?? []);
     } catch (error) {

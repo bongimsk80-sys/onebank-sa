@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, requireRole, getOrgId } from "@/lib/api-auth";
+import { requireAuth, requireRole, getOrgId, resolveOrgId } from "@/lib/api-auth";
 import { z } from "zod";
 
 const CreateConnectionSchema = z.object({
@@ -18,7 +18,7 @@ const UpdateConnectionSchema = z.object({
 export async function GET() {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
-  const orgId = getOrgId(session);
+  const orgId = await resolveOrgId(session);
 
   try {
     const connections = await prisma.erpConnection.findMany({
@@ -37,7 +37,7 @@ export async function GET() {
 export async function POST(request: Request) {
   const session = await requireRole(["admin"]);
   if (session instanceof NextResponse) return session;
-  const orgId = getOrgId(session);
+  const orgId = await resolveOrgId(session);
 
   try {
     const body = await request.json();
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   const session = await requireRole(["admin"]);
   if (session instanceof NextResponse) return session;
-  const orgId = getOrgId(session);
+  const orgId = await resolveOrgId(session);
 
   try {
     const body = await request.json();

@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/api-auth";
+import { requireAuth, requireRole } from "@/lib/api-auth";
+// Note: GET uses requireAuth (any logged-in user can fetch their own profile).
+// PATCH uses requireRole(["admin"]) — only admins may change names/emails.
 
-// GET /api/users/me — return the logged-in user's profile
+// GET /api/users/me — return the logged-in user's profile.
+// Uses requireAuth (not requireRole) so users with stale JWTs that are
+// missing the role claim can still fetch their own data and the session
+// initializer can patch up their Zustand store from fresh DB values.
 export async function GET() {
-  const session = await requireRole(["admin", "approver", "initiator", "reviewer", "executor", "viewer"]);
+  const session = await requireAuth();
   if (session instanceof NextResponse) return session;
 
   const userId = (session.user as any).id as string;
@@ -33,9 +38,9 @@ export async function GET() {
   });
 }
 
-// PATCH /api/users/me — update name and/or email for the logged-in user
+// PATCH /api/users/me — update name and/or email (admin only)
 export async function PATCH(req: NextRequest) {
-  const session = await requireRole(["admin", "approver", "initiator", "reviewer", "executor", "viewer"]);
+  const session = await requireRole(["admin"]);
   if (session instanceof NextResponse) return session;
 
   const userId = (session.user as any).id as string;

@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { recordDailySnapshot } from "@/lib/metrics";
+import { requireAuth } from "@/lib/api-auth";
 
 export async function GET(request: Request) {
+  const session = await requireAuth();
+  if (session instanceof NextResponse) return session;
+
   try {
     const { searchParams } = new URL(request.url);
     const range = searchParams.get("range") ?? "30";
@@ -148,6 +152,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST() {
+  const session = await requireAuth();
+  if (session instanceof NextResponse) return session;
+
   try {
     const result = await recordDailySnapshot();
     return NextResponse.json(result);

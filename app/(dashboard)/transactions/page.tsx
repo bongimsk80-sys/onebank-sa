@@ -67,6 +67,7 @@ export default function TransactionsPage() {
         if (search) params.set("search", search);
 
         const res = await fetch(`/api/transactions?${params.toString()}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         setTransactions(data.transactions ?? []);
       } catch (error) {

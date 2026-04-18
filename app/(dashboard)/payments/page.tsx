@@ -79,7 +79,8 @@ export default function PaymentsPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [selectedPayment, setSelectedPayment] = useState<any>(null);
   const { role } = useSessionStore();
-  const permissions = rolePermissions[role ?? "viewer"];
+  // Use || (not ??) so empty-string role also falls back to "viewer"
+  const permissions = rolePermissions[(role || "viewer") as keyof typeof rolePermissions] ?? rolePermissions.viewer;
 
   useEffect(() => {
     async function fetchPayments() {
@@ -92,6 +93,7 @@ export default function PaymentsPage() {
           params.set("status", status);
         }
         const res = await fetch(`/api/payments?${params.toString()}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         setPayments(data.payments ?? []);
       } catch (error) {

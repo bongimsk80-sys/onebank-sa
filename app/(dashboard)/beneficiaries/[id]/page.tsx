@@ -92,6 +92,7 @@ export default function BeneficiaryDetailPage() {
   async function fetchBeneficiary() {
     try {
       const res = await fetch(`/api/beneficiaries/${id}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setBeneficiary(data.beneficiary);
       setPayments(data.payments ?? []);

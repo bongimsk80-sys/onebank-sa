@@ -77,6 +77,7 @@ export default function BeneficiariesPage() {
       params.set("status", activeStatus.toLowerCase());
       if (activeType !== "All") params.set("type", activeType.toLowerCase());
       const res = await fetch(`/api/beneficiaries?${params.toString()}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setBeneficiaries(data.beneficiaries ?? []);
     } catch (error) {

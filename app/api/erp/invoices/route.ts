@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { requireAuth } from "@/lib/api-auth";
 
 const CreateInvoiceSchema = z.object({
   erpProvider: z.string().min(1).max(50),
@@ -12,6 +13,9 @@ const CreateInvoiceSchema = z.object({
 });
 
 export async function GET() {
+  const session = await requireAuth();
+  if (session instanceof NextResponse) return session;
+
   try {
     const invoices = await prisma.erpInvoice.findMany({
       orderBy: { dueDate: "asc" },
@@ -26,6 +30,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const session = await requireAuth();
+  if (session instanceof NextResponse) return session;
+
   try {
     const body = await request.json();
     const result = CreateInvoiceSchema.safeParse(body);

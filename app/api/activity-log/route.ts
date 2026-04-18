@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, getOrgId } from "@/lib/api-auth";
+import { requireAuth, getOrgId, resolveOrgId } from "@/lib/api-auth";
 import { z } from "zod";
 
 const CreateActivityLogSchema = z.object({
@@ -17,7 +17,7 @@ const CreateActivityLogSchema = z.object({
 export async function GET(request: Request) {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
-  const orgId = getOrgId(session);
+  const orgId = await resolveOrgId(session);
 
   try {
     const { searchParams } = new URL(request.url);
@@ -56,7 +56,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
-  const orgId = getOrgId(session);
+  const orgId = await resolveOrgId(session);
 
   try {
     const body = await request.json();

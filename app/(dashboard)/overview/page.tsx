@@ -90,6 +90,9 @@ export default function OverviewPage() {
           fetch("/api/transactions"),
           fetch("/api/payments"),
         ]);
+        if (!accountsRes.ok) throw new Error(`Accounts: HTTP ${accountsRes.status}`);
+        if (!transactionsRes.ok) throw new Error(`Transactions: HTTP ${transactionsRes.status}`);
+        if (!paymentsRes.ok) throw new Error(`Payments: HTTP ${paymentsRes.status}`);
         const accountsData = await accountsRes.json();
         const transactionsData = await transactionsRes.json();
         const paymentsData = await paymentsRes.json();

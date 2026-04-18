@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useSessionStore } from "@/store/session-store";
 import {
   ArrowLeft,
   Plus,
@@ -40,6 +41,8 @@ const accountTypes = [
 
 export default function BankAccountsPage() {
   const router = useRouter();
+  const { role } = useSessionStore();
+  const isAdmin = role === "admin";
   const [accounts, setAccounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -59,6 +62,7 @@ export default function BankAccountsPage() {
   async function fetchAccounts() {
     try {
       const res = await fetch("/api/accounts");
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setAccounts(data.accounts ?? []);
     } catch (error) {
@@ -213,7 +217,8 @@ export default function BankAccountsPage() {
                   <p className="text-sm font-bold text-[#1A202C]">
                     {showBalances ? formatZAR(account.balance) : "R ••••••"}
                   </p>
-                  <div className="flex items-center gap-1 mt-2 justify-end">
+                  {isAdmin && (
+                <div className="flex items-center gap-1 mt-2 justify-end">
                     <button
                       onClick={() => handleToggleActive(account.id, account.isActive)}
                       className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
@@ -237,6 +242,7 @@ export default function BankAccountsPage() {
                       <Trash2 size={13} className="text-[#C0392B]" />
                     </button>
                   </div>
+                )}
                 </div>
               </div>
             </div>
@@ -244,7 +250,8 @@ export default function BankAccountsPage() {
         )}
       </Card>
 
-      {/* Add Account Button */}
+      {/* Add Account Button — admin only */}
+      {isAdmin && (
       <button
         onClick={() => setShowAddForm(true)}
         className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border-2 border-dashed border-[#E2E8F0] bg-white text-sm font-semibold text-[#1B4332] hover:border-[#1B4332] hover:bg-[#F0FDF4] transition-all"
@@ -252,9 +259,10 @@ export default function BankAccountsPage() {
         <Plus size={16} />
         Add Bank Account
       </button>
+      )}
 
-      {/* Add Account Modal */}
-      {showAddForm && (
+      {/* Add Account Modal — admin only */}
+      {isAdmin && showAddForm && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end lg:items-center justify-center p-0 lg:p-4">
           <div className="bg-white w-full lg:max-w-md rounded-t-3xl lg:rounded-2xl overflow-hidden shadow-2xl">
             <div className="flex items-center justify-between px-6 py-4 border-b border-[#E2E8F0]">

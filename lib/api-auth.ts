@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export async function requireAuth() {
   const session = await auth();
@@ -57,4 +58,32 @@ export function requireOrgId(session: any): string | NextResponse {
     );
   }
   return orgId;
+}
+
+/**
+ * Resolves the organisationId for the current user.
+ *
+ * JWT-first: reads from the session token (fast, no DB).
+ * Falls back to a single DB lookup when the token is stale/missing the field
+ * (e.g. users with JWTs issued before the auth.ts organisationId fix).
+ *
+ * This ensures every user always sees their org's data — never a cross-org
+ * leak or empty result due to a missing JWT claim.
+ *
+ *   const orgId = await resolveOrgId(session);
+ *   where: { ...(orgId ? { organisationId: orgId } : {}), ...otherFilters }
+ */
+export async function resolveOrgId(session: any): Promise<string | null> {
+  const fromToken = getOrgId(session);
+  if (fromToken) return fromToken;
+
+  // Token is stale — look up from DB using the user id stored in the token.
+  const userId = (session?.user as any)?.id as string | undefined;
+  if (!userId) return null;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { organisationId: true },
+  });
+  return user?.organisationId ?? null;
 }

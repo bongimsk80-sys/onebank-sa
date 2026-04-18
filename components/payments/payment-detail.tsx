@@ -84,7 +84,7 @@ export default function PaymentDetail({
   onStatusChange,
 }: PaymentDetailProps) {
   const { role } = useSessionStore();
-  const permissions = rolePermissions[role ?? "viewer"];
+  const permissions = rolePermissions[(role || "viewer") as keyof typeof rolePermissions] ?? rolePermissions.viewer;
   const [loading, setLoading] = useState(false);
   const [currentStatus, setCurrentStatus] = useState(payment.status);
   const [showRejectModal, setShowRejectModal] = useState(false);

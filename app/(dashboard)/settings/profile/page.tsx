@@ -16,27 +16,46 @@ type EditField = "name" | "email" | null;
 export default function ProfilePage() {
   const router = useRouter();
   const { update: updateSession } = useSession();
-  const { role, orgName, setSession } = useSessionStore();
+  const { name: storeN, email: storeE, role: storeRole, orgName: storeOrg, setSession } = useSessionStore();
 
   const [profile,   setProfile]   = useState<any>(null);
   const [loading,   setLoading]   = useState(true);
   const [editing,   setEditing]   = useState<EditField>(null);
-  const [newName,   setNewName]   = useState("");
-  const [newEmail,  setNewEmail]  = useState("");
+  const [newName,   setNewName]   = useState(storeN ?? "");
+  const [newEmail,  setNewEmail]  = useState(storeE ?? "");
   const [saving,    setSaving]    = useState(false);
   const [success,   setSuccess]   = useState<string | null>(null);
   const [error,     setError]     = useState("");
 
+  // Seed a minimal profile from the Zustand store immediately so the page
+  // is never fully blank while the API call is in-flight.
+  const role   = profile?.role    ?? storeRole   ?? null;
+  const orgName = profile?.orgName ?? storeOrg   ?? null;
+
   useEffect(() => {
     fetch("/api/users/me")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((data) => {
         setProfile(data);
         setNewName(data.name ?? "");
         setNewEmail(data.email ?? "");
       })
-      .catch(() => setError("Failed to load profile."))
+      .catch(() => {
+        // Fall back gracefully — show what we have from the session store
+        setProfile({
+          name:    storeN    ?? "",
+          email:   storeE    ?? "",
+          role:    storeRole ?? "",
+          orgName: storeOrg  ?? null,
+        });
+        setNewName(storeN  ?? "");
+        setNewEmail(storeE ?? "");
+      })
       .finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function cancelEdit() {
@@ -83,7 +102,7 @@ export default function ProfilePage() {
       // Name change: update store + session in place
       const updatedName = data.user.name;
       setProfile((p: any) => ({ ...p, name: updatedName }));
-      setSession(role!, updatedName, profile.email, orgName);
+      setSession(role ?? "viewer", updatedName, profile?.email ?? storeE ?? "", orgName);
       await updateSession({ name: updatedName });
 
       setEditing(null);
@@ -106,7 +125,7 @@ export default function ProfilePage() {
       })
     : null;
 
-  const isAdmin = profile?.role === "admin";
+  const isAdmin = role === "admin";
 
   return (
     <div className="max-w-2xl mx-auto space-y-5">
@@ -137,7 +156,7 @@ export default function ProfilePage() {
               <div>
                 <p className="text-lg font-bold text-[#1A202C]">{profile?.name}</p>
                 <span className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-lg bg-[#F0FDF4] text-[#27AE60]">
-                  {profile?.role ?? "viewer"}
+                  {role ?? "viewer"}
                 </span>
               </div>
               {success && (
@@ -153,7 +172,7 @@ export default function ProfilePage() {
 
             {/* ── Name ── */}
             <div className="px-5 py-4">
-              {editing === "name" ? (
+              {isAdmin && editing === "name" ? (
                 <div className="space-y-3">
                   <p className="text-[11px] text-[#A0AEC0] font-medium uppercase tracking-wide">Full Name</p>
                   <Input
@@ -183,24 +202,29 @@ export default function ProfilePage() {
                 </div>
               ) : (
                 <div
-                  className="flex items-center gap-4 cursor-pointer group"
-                  onClick={() => { setEditing("name"); setError(""); }}
+                  className={`flex items-center gap-4 ${isAdmin ? "cursor-pointer group" : ""}`}
+                  onClick={isAdmin ? () => { setEditing("name"); setError(""); } : undefined}
                 >
                   <div className="w-8 h-8 rounded-lg bg-[#F4F6F8] flex items-center justify-center flex-shrink-0">
-                    <Pencil size={14} className="text-[#1B4332]" />
+                    <Pencil size={14} className={isAdmin ? "text-[#1B4332]" : "text-[#A0AEC0]"} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[11px] text-[#A0AEC0] font-medium uppercase tracking-wide">Full Name</p>
                     <p className="text-sm font-semibold text-[#1A202C] truncate">{profile?.name}</p>
+                    {!isAdmin && (
+                      <p className="text-[10px] text-[#A0AEC0] mt-0.5">To change, contact your admin</p>
+                    )}
                   </div>
-                  <ChevronRight size={14} className="text-[#A0AEC0] group-hover:text-[#1B4332] transition-colors" />
+                  {isAdmin && (
+                    <ChevronRight size={14} className="text-[#A0AEC0] group-hover:text-[#1B4332] transition-colors" />
+                  )}
                 </div>
               )}
             </div>
 
             {/* ── Email ── */}
             <div className="px-5 py-4">
-              {editing === "email" ? (
+              {isAdmin && editing === "email" ? (
                 <div className="space-y-3">
                   <p className="text-[11px] text-[#A0AEC0] font-medium uppercase tracking-wide">Email Address</p>
                   <Input
@@ -238,17 +262,22 @@ export default function ProfilePage() {
                 </div>
               ) : (
                 <div
-                  className="flex items-center gap-4 cursor-pointer group"
-                  onClick={() => { setEditing("email"); setError(""); }}
+                  className={`flex items-center gap-4 ${isAdmin ? "cursor-pointer group" : ""}`}
+                  onClick={isAdmin ? () => { setEditing("email"); setError(""); } : undefined}
                 >
                   <div className="w-8 h-8 rounded-lg bg-[#F4F6F8] flex items-center justify-center flex-shrink-0">
-                    <Mail size={14} className="text-[#1B4332]" />
+                    <Mail size={14} className={isAdmin ? "text-[#1B4332]" : "text-[#A0AEC0]"} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[11px] text-[#A0AEC0] font-medium uppercase tracking-wide">Email Address</p>
                     <p className="text-sm font-semibold text-[#1A202C] truncate">{profile?.email}</p>
+                    {!isAdmin && (
+                      <p className="text-[10px] text-[#A0AEC0] mt-0.5">To change, contact your admin</p>
+                    )}
                   </div>
-                  <ChevronRight size={14} className="text-[#A0AEC0] group-hover:text-[#1B4332] transition-colors" />
+                  {isAdmin && (
+                    <ChevronRight size={14} className="text-[#A0AEC0] group-hover:text-[#1B4332] transition-colors" />
+                  )}
                 </div>
               )}
             </div>
@@ -260,7 +289,7 @@ export default function ProfilePage() {
               </div>
               <div className="min-w-0">
                 <p className="text-[11px] text-[#A0AEC0] font-medium uppercase tracking-wide">Organisation</p>
-                <p className="text-sm font-semibold text-[#1A202C] truncate">{profile?.orgName ?? "—"}</p>
+                <p className="text-sm font-semibold text-[#1A202C] truncate">{orgName ?? "—"}</p>
               </div>
             </div>
 
@@ -272,8 +301,8 @@ export default function ProfilePage() {
               <div className="flex-1 min-w-0">
                 <p className="text-[11px] text-[#A0AEC0] font-medium uppercase tracking-wide">Role</p>
                 <p className="text-sm font-semibold text-[#1A202C]">
-                  {profile?.role
-                    ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1)
+                  {role
+                    ? role.charAt(0).toUpperCase() + role.slice(1)
                     : "—"}
                 </p>
               </div>

@@ -18,19 +18,19 @@ export default function SessionInitializer() {
       const email   = user.email   || "";
       const orgName = user.orgName || null;
 
-      // If the session is missing name/email (can happen when token is
-      // refreshed and fields aren't explicitly re-populated), fetch fresh
-      // data from the profile API as a fallback.
-      if (!name || !email) {
+      // If the session is missing name, email, or role (can happen when a
+      // stale JWT pre-dates the auth.ts fixes), fetch fresh data from the
+      // profile API as a fallback.
+      if (!name || !email || !role) {
         fetch("/api/users/me")
           .then((r) => r.ok ? r.json() : null)
           .then((data) => {
-            if (data?.name || data?.email) {
+            if (data?.name || data?.email || data?.role) {
               setSession(
-                role || data.role || "viewer",
+                data.role  || role || "viewer",
                 data.name  || name,
                 data.email || email,
-                orgName || data.orgName || null
+                data.orgName || orgName || null
               );
             } else {
               setSession(role || "viewer", name, email, orgName);
@@ -40,7 +40,7 @@ export default function SessionInitializer() {
         return;
       }
 
-      setSession(role || "viewer", name, email, orgName);
+      setSession(role, name, email, orgName);
 
     } else if (status === "unauthenticated") {
       clearSession();

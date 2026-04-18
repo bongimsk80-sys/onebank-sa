@@ -54,6 +54,7 @@ export default function WorkflowsPage() {
   async function fetchWorkflows() {
     try {
       const res = await fetch("/api/workflows");
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setWorkflows(data.workflows ?? []);
     } catch (error) {

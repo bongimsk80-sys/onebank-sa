@@ -57,6 +57,7 @@ export default function TransferLimitsPage() {
   async function fetchLimits() {
     try {
       const res = await fetch("/api/transfer-limits");
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setLimits(data.limits ?? []);
     } catch (error) {

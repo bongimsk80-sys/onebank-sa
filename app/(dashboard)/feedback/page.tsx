@@ -69,6 +69,7 @@ export default function FeedbackPage() {
   async function fetchFeedback() {
     try {
       const res = await fetch("/api/feedback");
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setFeedback(data.feedback ?? []);
     } catch (error) {

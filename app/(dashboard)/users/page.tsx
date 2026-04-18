@@ -110,6 +110,7 @@ export default function UsersPage() {
   async function fetchUsers() {
     try {
       const res = await fetch("/api/users");
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setUsers(data.users ?? []);
     } catch (error) {

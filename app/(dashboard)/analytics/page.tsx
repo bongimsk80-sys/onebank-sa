@@ -66,6 +66,7 @@ export default function AnalyticsPage() {
     async function fetchAnalytics() {
       try {
         const res = await fetch("/api/analytics");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
         setData(json);
       } catch (error) {
@@ -189,8 +190,8 @@ export default function AnalyticsPage() {
           </div>
 
           <div className="space-y-2">
-            {pieData?.map((item: any) => (
-              <div key={item.name} className="flex items-center justify-between">
+            {pieData?.map((item: any, i: number) => (
+              <div key={`${item.name}-${i}`} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div
                     className="w-3 h-3 rounded-full flex-shrink-0"
@@ -266,8 +267,8 @@ export default function AnalyticsPage() {
             <p className="text-xs font-bold text-[#718096] uppercase tracking-wide">Bank</p>
             <p className="text-xs font-bold text-[#718096] uppercase tracking-wide">Balance</p>
           </div>
-          {data?.bankBalances?.map((bank: any) => (
-            <div key={bank.name} className="flex items-center justify-between px-4 py-3">
+          {data?.bankBalances?.map((bank: any, i: number) => (
+            <div key={`${bank.name}-${i}`} className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-3">
                 <div
                   className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"

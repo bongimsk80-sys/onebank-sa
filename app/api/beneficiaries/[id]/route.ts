@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, getOrgId } from "@/lib/api-auth";
+import { requireAuth, getOrgId, resolveOrgId } from "@/lib/api-auth";
 import { z } from "zod";
 
 const ParamsSchema = z.object({
@@ -18,7 +18,7 @@ export async function GET(
 ) {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
-  const orgId = getOrgId(session);
+  const orgId = await resolveOrgId(session);
 
   try {
     const parsedParams = ParamsSchema.safeParse(await params);
@@ -65,7 +65,7 @@ export async function PATCH(
 ) {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
-  const orgId = getOrgId(session);
+  const orgId = await resolveOrgId(session);
 
   try {
     const parsedParams = ParamsSchema.safeParse(await params);

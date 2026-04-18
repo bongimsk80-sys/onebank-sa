@@ -74,6 +74,7 @@ export default function MetricsPage() {
   async function fetchMetrics() {
     try {
       const res = await fetch(`/api/metrics?range=${range}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       setData(json);
       setLastUpdated(new Date());
