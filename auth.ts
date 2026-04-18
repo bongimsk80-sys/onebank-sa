@@ -80,6 +80,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.isVerified             = (user as any).isVerified ?? false;
         token.hasCompletedOnboarding = (user as any).hasCompletedOnboarding ?? false;
         token.orgName                = (user as any).orgName ?? null;
+        // Record when this JWT was issued (epoch seconds) — used to invalidate
+        // tokens after a password reset (H12).
+        token.issuedAt               = Math.floor(Date.now() / 1000);
       }
 
       // ── updateSession() calls: merge only the fields that were passed ───────
@@ -106,6 +109,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         (session.user as any).isVerified             = token.isVerified ?? false;
         (session.user as any).hasCompletedOnboarding = token.hasCompletedOnboarding ?? false;
         (session.user as any).orgName                = token.orgName ?? null;
+        (session.user as any).issuedAt               = token.issuedAt ?? null;
       }
       return session;
     },

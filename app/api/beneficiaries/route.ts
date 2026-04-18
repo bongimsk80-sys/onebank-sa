@@ -25,19 +25,27 @@ export async function GET(request: Request) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get("status") ?? "active";
-    const type = searchParams.get("type");
+    const status   = searchParams.get("status") ?? "active";
+    const type     = searchParams.get("type");
+    const page     = Math.max(1, parseInt(searchParams.get("page")     ?? "1",  10));
+    const pageSize = Math.min(200, Math.max(1, parseInt(searchParams.get("pageSize") ?? "100", 10)));
+    const skip     = (page - 1) * pageSize;
 
-    const beneficiaries = await prisma.beneficiary.findMany({
-      where: {
-        ...(orgId ? { organisationId: orgId } : {}),
-        status,
-        ...(type && type !== "all" ? { type } : {}),
-      },
-      orderBy: { totalPayments: "desc" },
+    const where = {
+      ...(orgId ? { organisationId: orgId } : {}),
+      ...(status !== "all" ? { status } : {}),
+      ...(type && type !== "all" ? { type } : {}),
+    };
+
+    const [beneficiaries, total] = await Promise.all([
+      prisma.beneficiary.findMany({ where, orderBy: { totalPayments: "desc" }, skip, take: pageSize }),
+      prisma.beneficiary.count({ where }),
+    ]);
+
+    return NextResponse.json({
+      beneficiaries,
+      pagination: { total, page, pageSize, totalPages: Math.ceil(total / pageSize) },
     });
-
-    return NextResponse.json({ beneficiaries });
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to fetch beneficiaries" },

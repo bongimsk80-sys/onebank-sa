@@ -37,25 +37,29 @@ model Organisation {
 // ─── Core models ──────────────────────────────────────────────────────────────
 
 model User {
-  id                 String    @id @default(cuid())
-  name               String
-  email              String    @unique
-  password           String
-  role               String    @default("viewer")
-  isActive           Boolean   @default(true)
+  id                      String    @id @default(cuid())
+  name                    String
+  email                   String    @unique
+  password                String
+  role                    String    @default("viewer")
+  isActive                Boolean   @default(true)
   isVerified              Boolean   @default(false)
   verificationToken       String?
   verificationTokenExpiry DateTime?
   resetToken              String?
   resetTokenExpiry        DateTime?
+  passwordChangedAt       DateTime? // H12: JWT revocation after password reset
   inviteToken             String?
   inviteTokenExpiry       DateTime?
   hasCompletedOnboarding  Boolean   @default(false)
   organisationId          String?
-  organisation       Organisation? @relation(fields: [organisationId], references: [id])
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  organisation            Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
 
+  @@index([verificationToken])
+  @@index([resetToken])
+  @@index([inviteToken])
   @@map("users")
 }
 
@@ -69,11 +73,13 @@ model BankAccount {
   color          String
   isActive       Boolean       @default(true)
   organisationId String?
-  organisation   Organisation? @relation(fields: [organisationId], references: [id])
+  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   transactions   Transaction[]
 
+  @@unique([organisationId, accountNumber])
+  @@index([organisationId])
   @@map("bank_accounts")
 }
 
@@ -90,10 +96,11 @@ model Transaction {
   bankAccount    BankAccount? @relation(fields: [bankAccountId], references: [id])
   bankAccountId  String?
   organisationId String?
-  organisation   Organisation? @relation(fields: [organisationId], references: [id])
+  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
+  @@index([organisationId, date(sort: Desc)])
   @@map("transactions")
 }
 
@@ -105,6 +112,7 @@ model Payment {
   type           String
   status         String    @default("pending")
   initiatedBy    String
+  initiatorId    String?   // FK to User.id — used for self-approval prevention
   date           DateTime  @default(now())
   reference      String
   description    String
@@ -112,10 +120,12 @@ model Payment {
   scheduledDate  DateTime?
   isScheduled    Boolean   @default(false)
   organisationId String?
-  organisation   Organisation? @relation(fields: [organisationId], references: [id])
+  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
+  @@index([organisationId, status])
+  @@index([organisationId, date(sort: Desc)])
   @@map("payments")
 }
 
@@ -133,10 +143,12 @@ model Beneficiary {
   lastPaymentDate DateTime?
   tag             String
   organisationId  String?
-  organisation    Organisation? @relation(fields: [organisationId], references: [id])
+  organisation    Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
+  @@unique([organisationId, accountNumber])
+  @@index([organisationId])
   @@map("beneficiaries")
 }
 
@@ -149,10 +161,11 @@ model ApprovalWorkflow {
   steps          String
   isActive       Boolean  @default(true)
   organisationId String?
-  organisation   Organisation? @relation(fields: [organisationId], references: [id])
+  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
+  @@index([organisationId])
   @@map("approval_workflows")
 }
 
@@ -164,7 +177,7 @@ model TransferLimit {
   monthlyLimit   Float    @default(0)
   isActive       Boolean  @default(true)
   organisationId String?
-  organisation   Organisation? @relation(fields: [organisationId], references: [id])
+  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -183,9 +196,10 @@ model ActivityLog {
   ipAddress      String?
   status         String   @default("success")
   organisationId String?
-  organisation   Organisation? @relation(fields: [organisationId], references: [id])
+  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
   createdAt      DateTime @default(now())
 
+  @@index([organisationId, createdAt(sort: Desc)])
   @@map("activity_logs")
 }
 
@@ -198,10 +212,11 @@ model Notification {
   userId         String?
   link           String?
   organisationId String?
-  organisation   Organisation? @relation(fields: [organisationId], references: [id])
+  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
+  @@index([organisationId, read])
   @@map("notifications")
 }
 
@@ -214,7 +229,7 @@ model ErpConnection {
   apiUrl         String?
   lastSyncedAt   DateTime?
   organisationId String?
-  organisation   Organisation? @relation(fields: [organisationId], references: [id])
+  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
@@ -231,10 +246,11 @@ model ErpInvoice {
   status         String   @default("pending")
   paymentId      String?
   organisationId String?
-  organisation   Organisation? @relation(fields: [organisationId], references: [id])
+  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
+  @@index([organisationId, dueDate])
   @@map("erp_invoices")
 }
 

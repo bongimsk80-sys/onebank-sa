@@ -63,8 +63,15 @@ export async function POST(req: NextRequest) {
     const fullName       = `${(firstName as string).trim()} ${(lastName as string).trim()}`;
     const hashedPassword = await bcrypt.hash(password as string, 12);
 
-    await prisma.user.update({
-      where: { id: user.id },
+    // C3: Atomic single-use claim — only succeeds if the token is still present
+    // AND isVerified is still false (guards against race conditions where two
+    // simultaneous requests both pass the checks above).
+    const { count } = await prisma.user.updateMany({
+      where: {
+        id:         user.id,
+        inviteToken: token,      // token must still match
+        isVerified:  false,      // must not have been claimed already
+      },
       data: {
         name:                   fullName,
         password:               hashedPassword,
@@ -76,6 +83,14 @@ export async function POST(req: NextRequest) {
         hasCompletedOnboarding: true,
       },
     });
+
+    if (count === 0) {
+      // The token was consumed by a concurrent request in the race window
+      return NextResponse.json(
+        { error: "This invite link has already been used. Please sign in." },
+        { status: 409 }
+      );
+    }
 
     return NextResponse.json({ success: true });
   } catch (err) {

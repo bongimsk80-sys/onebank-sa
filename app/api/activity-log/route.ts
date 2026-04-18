@@ -21,30 +21,37 @@ export async function GET(request: Request) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const search = searchParams.get("search");
-    const status = searchParams.get("status");
+    const search     = searchParams.get("search");
+    const status     = searchParams.get("status");
     const entityType = searchParams.get("entityType");
+    const page       = Math.max(1, parseInt(searchParams.get("page")     ?? "1",  10));
+    const pageSize   = Math.min(200, Math.max(1, parseInt(searchParams.get("pageSize") ?? "50", 10)));
+    const skip       = (page - 1) * pageSize;
 
-    const logs = await prisma.activityLog.findMany({
-      where: {
-        ...(orgId ? { organisationId: orgId } : {}),
-        ...(search
-          ? {
-              OR: [
-                { action: { contains: search } },
-                { description: { contains: search } },
-                { userName: { contains: search } },
-              ],
-            }
-          : {}),
-        ...(status && status !== "all" ? { status } : {}),
-        ...(entityType && entityType !== "all" ? { entityType } : {}),
-      },
-      orderBy: { createdAt: "desc" },
-      take: 50,
+    const where = {
+      ...(orgId ? { organisationId: orgId } : {}),
+      ...(search
+        ? {
+            OR: [
+              { action:      { contains: search, mode: "insensitive" as const } },
+              { description: { contains: search, mode: "insensitive" as const } },
+              { userName:    { contains: search, mode: "insensitive" as const } },
+            ],
+          }
+        : {}),
+      ...(status     && status     !== "all" ? { status }     : {}),
+      ...(entityType && entityType !== "all" ? { entityType } : {}),
+    };
+
+    const [logs, total] = await Promise.all([
+      prisma.activityLog.findMany({ where, orderBy: { createdAt: "desc" }, skip, take: pageSize }),
+      prisma.activityLog.count({ where }),
+    ]);
+
+    return NextResponse.json({
+      logs,
+      pagination: { total, page, pageSize, totalPages: Math.ceil(total / pageSize) },
     });
-
-    return NextResponse.json({ logs });
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to fetch activity logs" },

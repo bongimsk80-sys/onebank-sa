@@ -2,6 +2,44 @@ import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * Validates the session JWT against live DB state:
+ * - H1: User must still be active (isActive=true)
+ * - H12: JWT must have been issued after the last password reset
+ *
+ * A single DB round-trip handles both checks.
+ */
+async function validateLiveSession(session: any): Promise<NextResponse | null> {
+  const userId   = (session?.user as any)?.id as string | undefined;
+  const issuedAt = (session?.user as any)?.issuedAt as number | undefined; // epoch seconds
+
+  if (!userId) return null; // no userId → nothing to check (handles edge cases)
+
+  const user = await prisma.user.findUnique({
+    where:  { id: userId },
+    select: { isActive: true, passwordChangedAt: true },
+  });
+
+  if (!user || !user.isActive) {
+    return NextResponse.json(
+      { error: "Your account has been deactivated. Please contact your admin." },
+      { status: 401 }
+    );
+  }
+
+  if (user.passwordChangedAt && issuedAt) {
+    const changedAtEpoch = Math.floor(user.passwordChangedAt.getTime() / 1000);
+    if (changedAtEpoch > issuedAt) {
+      return NextResponse.json(
+        { error: "Your session has expired after a password change. Please sign in again." },
+        { status: 401 }
+      );
+    }
+  }
+
+  return null; // all good
+}
+
 export async function requireAuth() {
   const session = await auth();
   if (!session) {
@@ -10,6 +48,10 @@ export async function requireAuth() {
       { status: 401 }
     );
   }
+
+  const invalid = await validateLiveSession(session);
+  if (invalid) return invalid;
+
   return session;
 }
 
@@ -27,6 +69,10 @@ export async function requireRole(allowedRoles: string[]) {
       { status: 403 }
     );
   }
+
+  const invalid = await validateLiveSession(session);
+  if (invalid) return invalid;
+
   return session;
 }
 

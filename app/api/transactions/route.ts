@@ -9,26 +9,34 @@ export async function GET(request: Request) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const bank = searchParams.get("bank");
-    const search = searchParams.get("search");
+    const bank     = searchParams.get("bank");
+    const search   = searchParams.get("search");
+    const page     = Math.max(1, parseInt(searchParams.get("page")     ?? "1",  10));
+    const pageSize = Math.min(200, Math.max(1, parseInt(searchParams.get("pageSize") ?? "50", 10)));
+    const skip     = (page - 1) * pageSize;
 
-    const transactions = await prisma.transaction.findMany({
-      where: {
-        ...(orgId ? { organisationId: orgId } : {}),
-        ...(bank && bank !== "all" ? { bank } : {}),
-        ...(search
-          ? {
-              OR: [
-                { name: { contains: search } },
-                { reference: { contains: search } },
-              ],
-            }
-          : {}),
-      },
-      orderBy: { date: "desc" },
+    const where = {
+      ...(orgId ? { organisationId: orgId } : {}),
+      ...(bank && bank !== "all" ? { bank } : {}),
+      ...(search
+        ? {
+            OR: [
+              { name: { contains: search, mode: "insensitive" as const } },
+              { reference: { contains: search, mode: "insensitive" as const } },
+            ],
+          }
+        : {}),
+    };
+
+    const [transactions, total] = await Promise.all([
+      prisma.transaction.findMany({ where, orderBy: { date: "desc" }, skip, take: pageSize }),
+      prisma.transaction.count({ where }),
+    ]);
+
+    return NextResponse.json({
+      transactions,
+      pagination: { total, page, pageSize, totalPages: Math.ceil(total / pageSize) },
     });
-
-    return NextResponse.json({ transactions });
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to fetch transactions" },

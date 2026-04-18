@@ -22,30 +22,45 @@ const DeleteUserSchema = z.object({
   id: z.string().min(1),
 });
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
   const orgId = await resolveOrgId(session);
 
   try {
-    const isAdmin = (session.user as any).role === "admin";
+    const { searchParams } = new URL(request.url);
+    const page     = Math.max(1, parseInt(searchParams.get("page")     ?? "1",  10));
+    const pageSize = Math.min(200, Math.max(1, parseInt(searchParams.get("pageSize") ?? "100", 10)));
+    const skip     = (page - 1) * pageSize;
 
-    const users = await prisma.user.findMany({
-      where: { ...(orgId ? { organisationId: orgId } : {}) },
-      orderBy: { createdAt: "asc" },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        isActive: true,
-        isVerified: true,
-        createdAt: true,
-        // Expose invite token to admins only so they can share the link manually
-        ...(isAdmin ? { inviteToken: true } : {}),
-      },
+    const isAdmin = (session.user as any).role === "admin";
+    const where   = { ...(orgId ? { organisationId: orgId } : {}) };
+
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        orderBy: { createdAt: "asc" },
+        skip,
+        take: pageSize,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          isActive: true,
+          isVerified: true,
+          createdAt: true,
+          // Expose invite token to admins only so they can share the link manually
+          ...(isAdmin ? { inviteToken: true } : {}),
+        },
+      }),
+      prisma.user.count({ where }),
+    ]);
+
+    return NextResponse.json({
+      users,
+      pagination: { total, page, pageSize, totalPages: Math.ceil(total / pageSize) },
     });
-    return NextResponse.json({ users });
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to fetch users" },

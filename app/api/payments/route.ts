@@ -30,17 +30,25 @@ export async function GET(request: Request) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get("status");
+    const status   = searchParams.get("status");
+    const page     = Math.max(1, parseInt(searchParams.get("page")     ?? "1",  10));
+    const pageSize = Math.min(200, Math.max(1, parseInt(searchParams.get("pageSize") ?? "50", 10)));
+    const skip     = (page - 1) * pageSize;
 
-    const payments = await prisma.payment.findMany({
-      where: {
-        ...(orgId ? { organisationId: orgId } : {}),
-        ...(status && status !== "all" ? { status } : {}),
-      },
-      orderBy: { date: "desc" },
+    const where = {
+      ...(orgId ? { organisationId: orgId } : {}),
+      ...(status && status !== "all" ? { status } : {}),
+    };
+
+    const [payments, total] = await Promise.all([
+      prisma.payment.findMany({ where, orderBy: { date: "desc" }, skip, take: pageSize }),
+      prisma.payment.count({ where }),
+    ]);
+
+    return NextResponse.json({
+      payments,
+      pagination: { total, page, pageSize, totalPages: Math.ceil(total / pageSize) },
     });
-
-    return NextResponse.json({ payments });
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to fetch payments" },
@@ -52,7 +60,10 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
-  const orgId = await resolveOrgId(session);
+  const orgId  = await resolveOrgId(session);
+  const userId = (session.user as any).id as string;
+  const role   = (session.user as any).role as string;
+  const userName = (session.user as any).name as string;
 
   try {
     const body = await request.json();
@@ -65,22 +76,58 @@ export async function POST(request: Request) {
     }
 
     const data = result.data;
+
+    // ── H5: Enforce per-transaction transfer limit ─────────────────────────���
+    if (orgId) {
+      const limit = await prisma.transferLimit.findFirst({
+        where: { organisationId: orgId, role, isActive: true },
+        select: { perTxLimit: true },
+      });
+      if (limit && data.amount > limit.perTxLimit) {
+        const fmt = (n: number) =>
+          new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR" }).format(n);
+        return NextResponse.json(
+          {
+            error: `Amount ${fmt(data.amount)} exceeds your per-transaction limit of ${fmt(limit.perTxLimit)}.`,
+          },
+          { status: 403 }
+        );
+      }
+    }
+
+    // ── Create payment ───────────────────────────────────────────────────────
     const payment = await prisma.payment.create({
       data: {
-        beneficiary: data.beneficiary,
-        bank: data.bank,
-        amount: data.amount,
-        type: data.type,
-        status: data.isScheduled ? "scheduled" : "pending",
-        initiatedBy: data.initiatedBy,
-        reference: data.reference,
-        description: data.description ?? "",
-        priority: data.priority ?? false,
-        isScheduled: data.isScheduled ?? false,
+        beneficiary:   data.beneficiary,
+        bank:          data.bank,
+        amount:        data.amount,
+        type:          data.type,
+        status:        data.isScheduled ? "scheduled" : "pending",
+        initiatedBy:   data.initiatedBy,
+        initiatorId:   userId,
+        reference:     data.reference,
+        description:   data.description ?? "",
+        priority:      data.priority ?? false,
+        isScheduled:   data.isScheduled ?? false,
         scheduledDate: data.scheduledDate ? new Date(data.scheduledDate) : null,
         ...(orgId ? { organisationId: orgId } : {}),
       },
     });
+
+    // ── H3: Audit log payment creation ──────────────────────────────────────
+    await prisma.activityLog.create({
+      data: {
+        action:      "Payment Created",
+        description: `${userName} initiated a payment of ${new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR" }).format(data.amount)} to ${data.beneficiary}`,
+        userId,
+        userName,
+        entityType:  "payment",
+        entityId:    payment.id,
+        status:      "success",
+        ...(orgId ? { organisationId: orgId } : {}),
+      },
+    });
+
     return NextResponse.json({ payment }, { status: 201 });
   } catch (error) {
     return NextResponse.json(
@@ -93,7 +140,9 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   const session = await requireRole(["admin", "approver"]);
   if (session instanceof NextResponse) return session;
-  const orgId = await resolveOrgId(session);
+  const orgId    = await resolveOrgId(session);
+  const userId   = (session.user as any).id as string;
+  const userName = (session.user as any).name as string;
 
   try {
     const body = await request.json();
@@ -107,6 +156,24 @@ export async function PATCH(request: Request) {
 
     const { id, status, rejectionReason } = result.data;
 
+    // H6: Prevent self-approval — fetch the payment to check who initiated it
+    const existing = await prisma.payment.findFirst({
+      where: { id, ...(orgId ? { organisationId: orgId } : {}) },
+      select: { initiatorId: true, initiatedBy: true },
+    });
+    if (!existing) {
+      return NextResponse.json({ error: "Payment not found." }, { status: 404 });
+    }
+    if (
+      (status === "approved" || status === "settled") &&
+      existing.initiatorId &&
+      existing.initiatorId === userId
+    ) {
+      return NextResponse.json(
+        { error: "You cannot approve a payment you initiated." },
+        { status: 403 }
+      );
+    }
 
     const payment = await prisma.payment.update({
       where: { id, ...(orgId ? { organisationId: orgId } : {}) },
@@ -118,14 +185,16 @@ export async function PATCH(request: Request) {
       },
     });
 
-    // Log the activity
+    // H3: Audit log payment status change
     await prisma.activityLog.create({
       data: {
-        action: `Payment ${status.charAt(0).toUpperCase() + status.slice(1)}`,
-        description: `Payment of ${new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR" }).format(payment.amount)} to ${payment.beneficiary} was ${status}`,
-        entityType: "payment",
-        entityId: payment.id,
-        status: status === "rejected" ? "failed" : "success",
+        action:      `Payment ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+        description: `${userName} ${status} payment of ${new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR" }).format(payment.amount)} to ${payment.beneficiary}`,
+        userId,
+        userName,
+        entityType:  "payment",
+        entityId:    payment.id,
+        status:      status === "rejected" ? "failed" : "success",
         ...(orgId ? { organisationId: orgId } : {}),
       },
     });
