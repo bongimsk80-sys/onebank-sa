@@ -233,6 +233,24 @@ export async function PATCH(request: Request) {
       });
     }
 
+    // Auto-create a Transaction record so the payment appears in the
+    // Transactions ledger and Recent Transactions on the Overview.
+    if (status === "settled") {
+      await prisma.transaction.create({
+        data: {
+          name:          payment.beneficiary,
+          type:          payment.type,
+          amount:        -Math.abs(payment.amount), // debit (outgoing)
+          bank:          payment.bank,
+          accountNumber: "N/A",
+          reference:     payment.reference,
+          status:        "completed",
+          date:          new Date(),
+          ...(orgId ? { organisationId: orgId } : {}),
+        },
+      });
+    }
+
     await recordRealTimeMetric({
       type: "payment",
       amount: payment.amount,

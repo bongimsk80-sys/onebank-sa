@@ -128,17 +128,20 @@ export default function PaymentsPage() {
           { label: "Settled", value: summary.settled, color: "#E67E22" },
           { label: "Rejected", value: summary.rejected, color: "#C0392B" },
           { label: "Scheduled", value: summary.scheduled, color: "#2980B9" },
-        ].map(({ label, value, color }) => (
-          <Card
-            key={label}
-            className="p-3 rounded-xl border border-[#E2E8F0] bg-white shadow-sm text-center"
-          >
-            <p className="text-xl font-bold" style={{ color }}>
-              {String(value).padStart(2, "0")}
-            </p>
-            <p className="text-[10px] text-[#718096] mt-0.5">{label}</p>
-          </Card>
-        ))}
+        ].map(({ label, value, color }, index, arr) => {
+          const isOrphan = index === arr.length - 1 && arr.length % 2 !== 0;
+          return (
+            <Card
+              key={label}
+              className={`p-3 rounded-xl border border-[#E2E8F0] bg-white shadow-sm text-center${isOrphan ? " col-span-2 max-w-[calc(50%-4px)]" : ""}`}
+            >
+              <p className="text-xl font-bold" style={{ color }}>
+                {String(value).padStart(2, "0")}
+              </p>
+              <p className="text-[10px] text-[#718096] mt-0.5">{label}</p>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Filter Tabs */}

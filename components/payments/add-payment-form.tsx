@@ -125,7 +125,7 @@ export default function AddPaymentForm({ onClose, onSuccess }: AddPaymentFormPro
 }
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-end lg:items-center justify-center p-0 lg:p-4">
+    <div className="fixed inset-0 bg-black/50 z-[60] flex items-end lg:items-center justify-center p-0 lg:p-4">
       <div className="bg-white w-full lg:max-w-lg rounded-t-3xl lg:rounded-2xl overflow-hidden shadow-2xl">
 
         {/* Header */}
@@ -284,14 +284,6 @@ export default function AddPaymentForm({ onClose, onSuccess }: AddPaymentFormPro
               <p className="text-[10px] text-[#A0AEC0]">
                 Maximum 5 files, 2MB each
               </p>
-              {showScheduleModal && (
-  <SchedulePaymentModal
-    formData={form}
-    loading={loading}
-    onCancel={() => setShowScheduleModal(false)}
-    onConfirm={handleSchedule}
-  />
-)}
             </div>
           </div>
 
@@ -321,6 +313,16 @@ export default function AddPaymentForm({ onClose, onSuccess }: AddPaymentFormPro
           </button>
         </div>
       </div>
+
+      {/* Schedule modal — rendered outside the scrollable sheet so it stacks above it */}
+      {showScheduleModal && (
+        <SchedulePaymentModal
+          formData={form}
+          loading={loading}
+          onCancel={() => setShowScheduleModal(false)}
+          onConfirm={handleSchedule}
+        />
+      )}
     </div>
   );
 }

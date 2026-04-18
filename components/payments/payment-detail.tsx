@@ -116,7 +116,7 @@ export default function PaymentDetail({
 }
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-end lg:items-center justify-center p-0 lg:p-4">
+    <div className="fixed inset-0 bg-black/50 z-[60] flex items-end lg:items-center justify-center p-0 lg:p-4">
       <div className="bg-white w-full lg:max-w-lg rounded-t-3xl lg:rounded-2xl overflow-hidden shadow-2xl">
 
         {/* Header */}
@@ -140,13 +140,6 @@ export default function PaymentDetail({
               <p className="text-2xl font-bold text-[#1A202C]">
                 {formatZAR(payment.amount)}
               </p>
-              {showRejectModal && (
-  <RejectReasonModal
-    loading={loading}
-    onCancel={() => setShowRejectModal(false)}
-    onConfirm={(reason) => updateStatus("rejected", reason)}
-  />
-)}
             </div>
             <div
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold"
@@ -342,6 +335,15 @@ export default function PaymentDetail({
           </button>
         </div>
       </div>
+
+      {/* Reject modal — rendered outside the sheet so it stacks above it */}
+      {showRejectModal && (
+        <RejectReasonModal
+          loading={loading}
+          onCancel={() => setShowRejectModal(false)}
+          onConfirm={(reason) => updateStatus("rejected", reason)}
+        />
+      )}
     </div>
   );
 }

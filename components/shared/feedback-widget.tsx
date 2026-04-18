@@ -87,7 +87,7 @@ export default function FeedbackWidget() {
       {/* Feedback Button */}
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-24 left-6 lg:bottom-8 lg:left-72 z-50 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#D4A017] text-white text-xs font-semibold shadow-lg hover:bg-[#A07810] transition-colors"
+        className="fixed bottom-24 left-6 lg:bottom-8 lg:left-72 z-40 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#D4A017] text-white text-xs font-semibold shadow-lg hover:bg-[#A07810] transition-colors"
       >
         <MessageSquare size={14} />
         Feedback
@@ -95,7 +95,7 @@ export default function FeedbackWidget() {
 
       {/* Modal */}
       {open && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end lg:items-center justify-center p-0 lg:p-4">
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-end lg:items-center justify-center p-0 lg:p-4">
           <div
             className="w-full lg:max-w-md rounded-t-3xl lg:rounded-2xl overflow-hidden shadow-2xl"
             style={{ backgroundColor: "var(--surface)" }}

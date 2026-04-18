@@ -188,7 +188,7 @@ export default function OverviewPage() {
             Total Balance
           </p>
           <Badge className="bg-[#D4A017] text-[#1B4332] text-[10px] font-bold border-0 px-2">
-            ● LIVE
+            ● BETA
           </Badge>
         </div>
         <p className="text-3xl font-bold mt-1">{formatZAR(totalBalance)}</p>
@@ -285,27 +285,30 @@ export default function OverviewPage() {
               bg: "#F5F3FF",
               color: "#7C3AED",
             },
-          ].map(({ label, value, icon, bg, color }) => (
-            <Card
-              key={label}
-              className="p-4 rounded-xl border shadow-sm"
-              style={{
-                backgroundColor: "var(--surface)",
-                borderColor: "var(--border)",
-              }}
-            >
-              <div
-                className="w-9 h-9 rounded-full flex items-center justify-center mb-2"
-                style={{ backgroundColor: bg, color }}
+          ].map(({ label, value, icon, bg, color }, index, arr) => {
+            const isOrphan = index === arr.length - 1 && arr.length % 2 !== 0;
+            return (
+              <Card
+                key={label}
+                className={`p-4 rounded-xl border shadow-sm${isOrphan ? " col-span-2 max-w-[calc(50%-6px)]" : ""}`}
+                style={{
+                  backgroundColor: "var(--surface)",
+                  borderColor: "var(--border)",
+                }}
               >
-                {icon}
-              </div>
-              <p className="text-2xl font-bold text-[#1A202C]">
-                {String(value).padStart(2, "0")}
-              </p>
-              <p className="text-xs text-[#718096] mt-0.5">{label}</p>
-            </Card>
-          ))}
+                <div
+                  className="w-9 h-9 rounded-full flex items-center justify-center mb-2"
+                  style={{ backgroundColor: bg, color }}
+                >
+                  {icon}
+                </div>
+                <p className="text-2xl font-bold text-[#1A202C]">
+                  {String(value).padStart(2, "0")}
+                </p>
+                <p className="text-xs text-[#718096] mt-0.5">{label}</p>
+              </Card>
+            );
+          })}
         </div>
       </div>
       )}
