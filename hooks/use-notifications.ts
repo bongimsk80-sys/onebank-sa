@@ -7,6 +7,7 @@ export function useNotifications() {
   const fetchNotifications = useCallback(async () => {
     try {
       const res = await fetch("/api/notifications");
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const notifs = data.notifications ?? [];
       setNotifications(notifs);

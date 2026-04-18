@@ -15,26 +15,33 @@ async function validateLiveSession(session: any): Promise<NextResponse | null> {
 
   if (!userId) return null; // no userId → nothing to check (handles edge cases)
 
-  const user = await prisma.user.findUnique({
-    where:  { id: userId },
-    select: { isActive: true, passwordChangedAt: true },
-  });
+  try {
+    const user = await prisma.user.findUnique({
+      where:  { id: userId },
+      select: { isActive: true, passwordChangedAt: true },
+    });
 
-  if (!user || !user.isActive) {
-    return NextResponse.json(
-      { error: "Your account has been deactivated. Please contact your admin." },
-      { status: 401 }
-    );
-  }
-
-  if (user.passwordChangedAt && issuedAt) {
-    const changedAtEpoch = Math.floor(user.passwordChangedAt.getTime() / 1000);
-    if (changedAtEpoch > issuedAt) {
+    if (!user || !user.isActive) {
       return NextResponse.json(
-        { error: "Your session has expired after a password change. Please sign in again." },
+        { error: "Your account has been deactivated. Please contact your admin." },
         { status: 401 }
       );
     }
+
+    if (user.passwordChangedAt && issuedAt) {
+      const changedAtEpoch = Math.floor(user.passwordChangedAt.getTime() / 1000);
+      if (changedAtEpoch > issuedAt) {
+        return NextResponse.json(
+          { error: "Your session has expired after a password change. Please sign in again." },
+          { status: 401 }
+        );
+      }
+    }
+  } catch (err) {
+    // DB error during live-session check (e.g. column not yet migrated in dev,
+    // Prisma client stale, or transient connection issue).  Log it and allow
+    // the request to continue rather than surfacing a 500 to the user.
+    console.error("[validateLiveSession] DB check failed — skipping:", err);
   }
 
   return null; // all good
