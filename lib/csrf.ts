@@ -27,13 +27,18 @@ export function validateCsrf(req: NextRequest): NextResponse | null {
     );
   }
 
-  // 2. Validate Origin header against the configured app URL.
-  //    Requests from the same origin have a matching Origin; requests from
-  //    server-side callers (curl, Postman, trusted integrations) have no Origin
-  //    and are permitted — only explicit cross-origin browser requests are blocked.
+  // 2. Validate Origin against the request's own Host header.
+  //
+  //    Same-origin requests (browser → its own API) pass because Origin and
+  //    Host share the same hostname. Requests from server-side callers (curl,
+  //    Postman, internal services) have no Origin header and are also permitted.
+  //    Only explicit cross-origin browser requests are blocked.
+  //
+  //    Using Host rather than NEXTAUTH_URL makes this work across every Vercel
+  //    deployment URL (production, preview, branch) without extra configuration.
   const origin = req.headers.get("origin");
   if (origin) {
-    const allowed = getAllowedOrigins();
+    const allowed = getAllowedOrigins(req);
     const reqOrigin = normaliseOrigin(origin);
     if (!allowed.includes(reqOrigin)) {
       return NextResponse.json(
@@ -55,16 +60,29 @@ function normaliseOrigin(raw: string): string {
   }
 }
 
-function getAllowedOrigins(): string[] {
-  const base =
-    process.env.NEXTAUTH_URL ??
-    process.env.NEXT_PUBLIC_APP_URL ??
-    "http://localhost:3000";
+function getAllowedOrigins(req: NextRequest): string[] {
+  const origins: string[] = [];
 
-  // Always allow localhost in non-production
-  const origins = [normaliseOrigin(base)];
+  // Primary: derive from the incoming Host header — always matches same-origin
+  // requests regardless of deployment URL.
+  const host = req.headers.get("host");
+  if (host) {
+    const isLocal = host.startsWith("localhost") || host.startsWith("127.");
+    origins.push(`${isLocal ? "http" : "https"}://${host}`);
+  }
+
+  // Secondary: honour the explicitly configured app URL if present
+  const configured =
+    process.env.NEXTAUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL;
+  if (configured) {
+    const norm = normaliseOrigin(configured);
+    if (!origins.includes(norm)) origins.push(norm);
+  }
+
+  // Development convenience
   if (process.env.NODE_ENV !== "production") {
     origins.push("http://localhost:3000", "http://127.0.0.1:3000");
   }
+
   return origins;
 }
