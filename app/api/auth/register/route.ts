@@ -105,11 +105,13 @@ export async function POST(req: NextRequest) {
       return { user, verificationToken };
     });
 
-    // ── 10. Send verification email ──────────────────────────────────────────
+    // ── 10. Send verification email (fire-and-forget — never block 201) ────────
     const baseUrl = process.env.NEXTAUTH_URL ?? "https://onebank-sa-iota.vercel.app";
     const verificationUrl = `${baseUrl}/verify-email?token=${verificationToken}`;
 
-    await sendVerificationEmail(user.email, user.name, verificationUrl);
+    sendVerificationEmail(user.email, user.name, verificationUrl).catch((err) => {
+      console.error("[register] Failed to send verification email:", err);
+    });
 
     // ── 11. Respond ──────────────────────────────────────────────────────────
     return NextResponse.json(
