@@ -350,3 +350,149 @@ export async function sendWelcomeEmail(
     html,
   });
 }
+
+// ─── Template: Close-Account Request (internal alert to OneBank SA team) ─────
+
+export interface CloseAccountEmailPayload {
+  adminName:   string;
+  adminEmail:  string;
+  orgName:     string;
+  orgSlug:     string;
+  reason:      string;
+  details:     string;
+  submittedAt: Date;
+}
+
+export async function sendCloseAccountRequestToTeam(payload: CloseAccountEmailPayload) {
+  const { adminName, adminEmail, orgName, orgSlug, reason, details, submittedAt } = payload;
+
+  const formattedDate = submittedAt.toLocaleString("en-ZA", {
+    timeZone: "Africa/Johannesburg",
+    dateStyle: "full",
+    timeStyle: "short",
+  });
+
+  const html = wrapper(`
+    <h1 style="font-family:${BRAND.font};font-size:22px;font-weight:bold;color:#C0392B;margin:0 0 8px;">
+      Account Closure Request
+    </h1>
+    <p style="font-family:${BRAND.font};font-size:14px;color:${BRAND.textMuted};margin:0 0 24px;line-height:1.6;">
+      A client has submitted an account closure request. Please review the details below and follow the offboarding checklist.
+    </p>
+
+    <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#FFF5F5;border-radius:10px;margin-bottom:24px;">
+      <tr>
+        <td style="padding:20px 24px;">
+          <table cellpadding="0" cellspacing="0" border="0" width="100%">
+            ${[
+              ["Organisation",    orgName],
+              ["Org Slug",        orgSlug],
+              ["Admin Name",      adminName],
+              ["Admin Email",     adminEmail],
+              ["Reason",          reason],
+              ["Additional Info", details || "—"],
+              ["Submitted At",    formattedDate],
+            ].map(([label, value]) => `
+              <tr>
+                <td style="padding:6px 0;border-bottom:1px solid #FED7D7;vertical-align:top;width:140px;">
+                  <span style="font-family:${BRAND.font};font-size:12px;color:${BRAND.textMuted};">${label}</span>
+                </td>
+                <td style="padding:6px 0 6px 16px;border-bottom:1px solid #FED7D7;vertical-align:top;">
+                  <span style="font-family:${BRAND.font};font-size:13px;font-weight:bold;color:${BRAND.textDark};">${value}</span>
+                </td>
+              </tr>
+            `).join("")}
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    <div style="background:#FFF8EC;border-left:4px solid ${BRAND.gold};border-radius:0 8px 8px 0;padding:16px 20px;">
+      <p style="font-family:${BRAND.font};font-size:13px;color:${BRAND.textDark};margin:0 0 8px;font-weight:bold;">
+        Offboarding checklist
+      </p>
+      <ul style="font-family:${BRAND.font};font-size:13px;color:${BRAND.textMuted};margin:0;padding-left:20px;line-height:2;">
+        <li>Confirm no pending/approved payments remain</li>
+        <li>Confirm all ERP syncs are stopped</li>
+        <li>Provide the client with a full data export</li>
+        <li>Apply data retention policy (7-year financial records)</li>
+        <li>Deactivate organisation in Prisma (isActive = false)</li>
+        <li>Respond to client within 5 business days</li>
+      </ul>
+    </div>
+  `);
+
+  return sendEmail({
+    to:      "hello@onebank.co.za",
+    subject: `[Action Required] Account closure request — ${orgName}`,
+    html,
+    replyTo: adminEmail,
+  });
+}
+
+// ─── Template: Close-Account Confirmation (to the client admin) ──────────────
+
+export async function sendCloseAccountConfirmationToAdmin(payload: CloseAccountEmailPayload) {
+  const { adminName, orgName, reason, submittedAt } = payload;
+
+  const formattedDate = submittedAt.toLocaleString("en-ZA", {
+    timeZone: "Africa/Johannesburg",
+    dateStyle: "full",
+    timeStyle: "short",
+  });
+
+  const html = wrapper(`
+    <h1 style="font-family:${BRAND.font};font-size:22px;font-weight:bold;color:${BRAND.textDark};margin:0 0 8px;">
+      We've received your request
+    </h1>
+    <p style="font-family:${BRAND.font};font-size:14px;color:${BRAND.textMuted};margin:0 0 24px;line-height:1.6;">
+      Hi ${adminName}, your account closure request for <strong style="color:${BRAND.textDark};">${orgName}</strong> has been received and is being reviewed by our team.
+    </p>
+
+    <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#F0FAF4;border-radius:10px;margin-bottom:24px;">
+      <tr>
+        <td style="padding:20px 24px;">
+          <table cellpadding="0" cellspacing="0" border="0" width="100%">
+            ${[
+              ["Organisation", orgName],
+              ["Reason",       reason],
+              ["Submitted",    formattedDate],
+            ].map(([label, value]) => `
+              <tr>
+                <td style="padding:6px 0;border-bottom:1px solid ${BRAND.border};vertical-align:top;width:120px;">
+                  <span style="font-family:${BRAND.font};font-size:12px;color:${BRAND.textMuted};">${label}</span>
+                </td>
+                <td style="padding:6px 0 6px 16px;border-bottom:1px solid ${BRAND.border};vertical-align:top;">
+                  <span style="font-family:${BRAND.font};font-size:13px;font-weight:bold;color:${BRAND.textDark};">${value}</span>
+                </td>
+              </tr>
+            `).join("")}
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    <div style="background:#FFF8EC;border-left:4px solid ${BRAND.gold};border-radius:0 8px 8px 0;padding:16px 20px;margin-bottom:24px;">
+      <p style="font-family:${BRAND.font};font-size:13px;color:${BRAND.textMuted};margin:0;line-height:1.7;">
+        <strong style="color:${BRAND.textDark};">What happens next?</strong><br/>
+        Our team will review your request within <strong>5 business days</strong>. We'll contact you to confirm there are no outstanding payments or active integrations before we proceed. Your account remains fully active until the process is complete.
+      </p>
+    </div>
+
+    <div style="background:#FFF5F5;border-left:4px solid #FC8181;border-radius:0 8px 8px 0;padding:16px 20px;">
+      <p style="font-family:${BRAND.font};font-size:13px;color:${BRAND.textMuted};margin:0;line-height:1.7;">
+        <strong style="color:${BRAND.textDark};">Changed your mind?</strong><br/>
+        If you'd like to cancel this request, simply reply to this email or contact us at
+        <a href="mailto:hello@onebank.co.za" style="color:${BRAND.green};">hello@onebank.co.za</a>
+        before our team contacts you.
+      </p>
+    </div>
+  `);
+
+  return sendEmail({
+    to:      payload.adminEmail,
+    subject: `Your OneBank SA account closure request has been received`,
+    html,
+    replyTo: "hello@onebank.co.za",
+  });
+}

@@ -21,6 +21,7 @@ import {
   Users,
   Shield,
   LogOut,
+  XCircle,
 } from "lucide-react";
 
 const settingsGroups = [
@@ -129,6 +130,29 @@ export default function SettingsPage() {
           </Card>
         </div>
       ))}
+
+      {/* Danger Zone */}
+      {role === "admin" && (
+        <div>
+          <p className="text-xs font-bold text-[#A0AEC0] uppercase tracking-widest mb-2 px-1">
+            DANGER ZONE
+          </p>
+          <Card className="rounded-xl border border-[#FED7D7] bg-white shadow-sm overflow-hidden">
+            <div
+              onClick={() => router.push("/settings/close-account")}
+              className="flex items-center justify-between px-4 py-3.5 cursor-pointer hover:bg-[#FFF5F5] transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-[#FFF5F5] flex items-center justify-center">
+                  <XCircle size={16} className="text-[#C0392B]" />
+                </div>
+                <span className="text-sm font-medium text-[#C0392B]">Close Account</span>
+              </div>
+              <ChevronRight size={14} className="text-[#FC8181]" />
+            </div>
+          </Card>
+        </div>
+      )}
 
       {/* App Info */}
       <Card className="p-4 rounded-xl border border-[#E2E8F0] bg-white shadow-sm">
