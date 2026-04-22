@@ -496,3 +496,72 @@ export async function sendCloseAccountConfirmationToAdmin(payload: CloseAccountE
     replyTo: "hello@onebank.co.za",
   });
 }
+
+// ─── Template: LG Waitlist Notification (internal alert to OneBank SA team) ──
+
+export interface LgWaitlistEmailPayload {
+  userName:  string;
+  userEmail: string;
+  orgName:   string;
+  lgType:    string;
+  joinedAt:  Date;
+}
+
+export async function sendLgWaitlistNotification(payload: LgWaitlistEmailPayload) {
+  const { userName, userEmail, orgName, lgType, joinedAt } = payload;
+
+  const formattedDate = joinedAt.toLocaleString("en-ZA", {
+    timeZone:  "Africa/Johannesburg",
+    dateStyle: "full",
+    timeStyle: "short",
+  });
+
+  const html = wrapper(`
+    <h1 style="font-family:${BRAND.font};font-size:22px;font-weight:bold;color:${BRAND.textDark};margin:0 0 8px;">
+      New LG Waitlist Signup
+    </h1>
+    <p style="font-family:${BRAND.font};font-size:14px;color:${BRAND.textMuted};margin:0 0 24px;line-height:1.6;">
+      A client has joined the Letters of Guarantee early-access waitlist.
+    </p>
+
+    <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#F0FAF4;border-radius:10px;margin-bottom:24px;">
+      <tr>
+        <td style="padding:20px 24px;">
+          <table cellpadding="0" cellspacing="0" border="0" width="100%">
+            ${[
+              ["Name",          userName],
+              ["Email",         userEmail],
+              ["Organisation",  orgName],
+              ["LG Type Needed", lgType],
+              ["Signed Up",     formattedDate],
+            ].map(([label, value]) => `
+              <tr>
+                <td style="padding:6px 0;border-bottom:1px solid ${BRAND.border};vertical-align:top;width:140px;">
+                  <span style="font-family:${BRAND.font};font-size:12px;color:${BRAND.textMuted};">${label}</span>
+                </td>
+                <td style="padding:6px 0 6px 16px;border-bottom:1px solid ${BRAND.border};vertical-align:top;">
+                  <span style="font-family:${BRAND.font};font-size:13px;font-weight:bold;color:${BRAND.textDark};">${value}</span>
+                </td>
+              </tr>
+            `).join("")}
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    <div style="background:#FFF8EC;border-left:4px solid ${BRAND.gold};border-radius:0 8px 8px 0;padding:16px 20px;">
+      <p style="font-family:${BRAND.font};font-size:13px;color:${BRAND.textMuted};margin:0;line-height:1.7;">
+        <strong style="color:${BRAND.textDark};">Next step:</strong> Add this contact to the LG pilot outreach list.
+        When you're ready to onboard them, reply to this email or reach out to
+        <a href="mailto:${userEmail}" style="color:${BRAND.green};">${userEmail}</a> directly.
+      </p>
+    </div>
+  `);
+
+  return sendEmail({
+    to:      "hello@onebank.co.za",
+    subject: `[LG Waitlist] ${orgName} — ${lgType}`,
+    html,
+    replyTo: userEmail,
+  });
+}

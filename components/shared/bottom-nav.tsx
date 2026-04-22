@@ -8,7 +8,7 @@ import {
   LayoutDashboard,
   ArrowLeftRight,
   CreditCard,
-  BarChart2,
+  ShieldCheck,
   Settings,
   LogOut,
 } from "lucide-react";
@@ -17,7 +17,7 @@ const navItems = [
   { label: "Overview", href: "/overview", icon: LayoutDashboard },
   { label: "Transactions", href: "/transactions", icon: ArrowLeftRight },
   { label: "Payments", href: "/payments", icon: CreditCard },
-  { label: "Analytics", href: "/analytics", icon: BarChart2 },
+  { label: "LG", href: "/lg-applications", icon: ShieldCheck },
   { label: "Settings", href: "/settings", icon: Settings },
 ];
 

@@ -16,6 +16,7 @@ import {
   UserCog,
   MessageSquare,
   Activity,
+  ShieldCheck,
 } from "lucide-react";
 
 const baseNavItems = [
@@ -25,6 +26,7 @@ const baseNavItems = [
   { label: "Beneficiaries", href: "/beneficiaries", icon: Users },
   { label: "Analytics", href: "/analytics", icon: BarChart2 },
   { label: "ERP", href: "/erp", icon: Link2 },
+  { label: "LG", href: "/lg-applications", icon: ShieldCheck },
   { label: "Settings", href: "/settings", icon: Settings },
   { label: "Users", href: "/users", icon: UserCog },
 ];
