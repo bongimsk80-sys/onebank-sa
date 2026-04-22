@@ -14,6 +14,7 @@ import {
   XCircle,
   Eye,
   EyeOff,
+  AlertCircle,
 } from "lucide-react";
 
 function formatZAR(amount: number) {
@@ -43,11 +44,13 @@ export default function BankAccountsPage() {
   const router = useRouter();
   const { role } = useSessionStore();
   const isAdmin = role === "admin";
-  const [accounts, setAccounts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [accounts, setAccounts]     = useState<any[]>([]);
+  const [accountLimit, setLimit]    = useState<number>(10);
+  const [accountPlan, setPlan]      = useState<string>("beta");
+  const [loading, setLoading]       = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showBalances, setShowBalances] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError]           = useState("");
   const [form, setForm] = useState({
     bank: "",
     accountNumber: "",
@@ -65,6 +68,8 @@ export default function BankAccountsPage() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setAccounts(data.accounts ?? []);
+      if (data.limit !== undefined) setLimit(data.limit);
+      if (data.plan  !== undefined) setPlan(data.plan);
     } catch (error) {
       console.error("Failed to fetch accounts:", error);
     } finally {
@@ -92,11 +97,15 @@ export default function BankAccountsPage() {
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to add account");
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setError(d.detail ?? d.error ?? "Failed to add account. Please try again.");
+        return;
+      }
       setShowAddForm(false);
       setForm({ bank: "", accountNumber: "", accountType: "Business Cheque", balance: "" });
       fetchAccounts();
-    } catch (error) {
+    } catch {
       setError("Failed to add account. Please try again.");
     }
   }
@@ -120,9 +129,12 @@ export default function BankAccountsPage() {
     fetchAccounts();
   }
 
-  const totalBalance = accounts
-    .filter((a) => a.isActive)
-    .reduce((sum, a) => sum + a.balance, 0);
+  const totalBalance  = accounts.filter((a) => a.isActive).reduce((sum, a) => sum + a.balance, 0);
+  const count         = accounts.length;
+  const isUnlimited   = accountLimit === Infinity || accountLimit >= 999;
+  const atLimit       = !isUnlimited && count >= accountLimit;
+  const quotaPct      = isUnlimited ? 0 : Math.min((count / accountLimit) * 100, 100);
+  const quotaColor    = quotaPct >= 100 ? "#C0392B" : quotaPct >= 80 ? "#D4A017" : "#1B4332";
 
   return (
     <div className="max-w-2xl mx-auto space-y-5">
@@ -152,6 +164,36 @@ export default function BankAccountsPage() {
           {showBalances ? "Hide" : "Show"} Balances
         </button>
       </div>
+
+      {/* Quota bar */}
+      {!loading && (
+        <Card className="p-4 rounded-xl border border-[#E2E8F0] bg-white shadow-sm">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold text-[#1A202C]">
+              Connected accounts
+            </span>
+            <span className="text-xs font-bold" style={{ color: quotaColor }}>
+              {isUnlimited ? `${count} — unlimited` : `${count} of ${accountLimit}`}
+            </span>
+          </div>
+          {!isUnlimited && (
+            <div className="w-full h-1.5 bg-[#F4F6F8] rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{ width: `${quotaPct}%`, backgroundColor: quotaColor }}
+              />
+            </div>
+          )}
+          <p className="text-[10px] text-[#A0AEC0] mt-1.5 capitalize">
+            {accountPlan} plan
+            {atLimit && (
+              <span className="ml-1 font-semibold text-[#C0392B]">
+                — limit reached
+              </span>
+            )}
+          </p>
+        </Card>
+      )}
 
       {/* Total Balance Card */}
       <Card className="bg-[#1B4332] text-white p-5 rounded-2xl border-0 shadow-lg">
@@ -251,14 +293,41 @@ export default function BankAccountsPage() {
       </Card>
 
       {/* Add Account Button — admin only */}
-      {isAdmin && (
-      <button
-        onClick={() => setShowAddForm(true)}
-        className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border-2 border-dashed border-[#E2E8F0] bg-white text-sm font-semibold text-[#1B4332] hover:border-[#1B4332] hover:bg-[#F0FDF4] transition-all"
-      >
-        <Plus size={16} />
-        Add Bank Account
-      </button>
+      {isAdmin && !atLimit && (
+        <button
+          onClick={() => setShowAddForm(true)}
+          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border-2 border-dashed border-[#E2E8F0] bg-white text-sm font-semibold text-[#1B4332] hover:border-[#1B4332] hover:bg-[#F0FDF4] transition-all"
+        >
+          <Plus size={16} />
+          Add Bank Account
+        </button>
+      )}
+
+      {/* Limit reached — upgrade prompt */}
+      {isAdmin && atLimit && (
+        <Card className="p-4 rounded-xl border border-[#FED7D7] bg-[#FFF5F5] shadow-sm">
+          <div className="flex gap-3">
+            <div className="w-8 h-8 rounded-lg bg-[#FED7D7] flex items-center justify-center flex-shrink-0">
+              <AlertCircle size={16} className="text-[#C0392B]" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-[#C0392B] mb-0.5">
+                Account limit reached ({accountLimit}/{accountLimit})
+              </p>
+              <p className="text-xs text-[#718096] leading-relaxed">
+                Your <span className="font-semibold capitalize">{accountPlan}</span> plan
+                allows up to {accountLimit} bank accounts. To connect more accounts,
+                contact us to upgrade your plan.
+              </p>
+              <a
+                href="mailto:hello@onebank.co.za?subject=Plan upgrade request"
+                className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-[#1B4332] hover:underline"
+              >
+                Contact us to upgrade →
+              </a>
+            </div>
+          </div>
+        </Card>
       )}
 
       {/* Add Account Modal — admin only */}
