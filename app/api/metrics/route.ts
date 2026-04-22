@@ -129,7 +129,8 @@ export async function GET(request: Request) {
         allTimePaymentValue: allTimePaymentValue,
         totalUsers: allUsers,
         totalBeneficiaries: allBeneficiaries,
-        totalBanksConnected: allAccounts.length,
+        totalAccountsConnected: allAccounts.length,
+        totalDistinctBanks: new Set(allAccounts.map((a) => a.bank)).size,
         avgPaymentSize: allPayments.length > 0 ? allTimePaymentValue / allPayments.length : 0,
         approvalRate: allPayments.length > 0
           ? ((statusMap["approved"] ?? 0) + (statusMap["settled"] ?? 0)) / allPayments.length * 100

@@ -194,13 +194,17 @@ export default function MetricsPage() {
         {/* Secondary Stats */}
         <div className="grid grid-cols-3 lg:grid-cols-6 gap-3">
           {[
-            { label: "Banks Connected", value: summary?.totalBanksConnected ?? 0 },
-            { label: "Active Users", value: summary?.totalUsers ?? 0 },
-            { label: "Beneficiaries", value: summary?.totalBeneficiaries ?? 0 },
-            { label: `${range}d Transactions`, value: data?.period?.transactions ?? 0 },
-            { label: `${range}d Payments`, value: data?.period?.payments ?? 0 },
-            { label: `${range}d Value`, value: formatZAR(data?.period?.transactionValue ?? 0) },
-          ].map(({ label, value }) => (
+            {
+              label: "Accounts Connected",
+              value: summary?.totalAccountsConnected ?? 0,
+              sub:   `across ${summary?.totalDistinctBanks ?? 0} bank${(summary?.totalDistinctBanks ?? 0) !== 1 ? "s" : ""}`,
+            },
+            { label: "Active Users",          value: summary?.totalUsers ?? 0,                          sub: null },
+            { label: "Beneficiaries",          value: summary?.totalBeneficiaries ?? 0,                  sub: null },
+            { label: `${range}d Transactions`, value: data?.period?.transactions ?? 0,                   sub: null },
+            { label: `${range}d Payments`,     value: data?.period?.payments ?? 0,                       sub: null },
+            { label: `${range}d Value`,        value: formatZAR(data?.period?.transactionValue ?? 0),    sub: null },
+          ].map(({ label, value, sub }) => (
             <Card
               key={label}
               className="p-4 rounded-xl border border-[#2D3748] text-center"
@@ -208,6 +212,9 @@ export default function MetricsPage() {
             >
               <p className="text-lg font-bold text-white">{value}</p>
               <p className="text-[10px] text-[#718096] mt-0.5">{label}</p>
+              {sub && (
+                <p className="text-[10px] text-[#4A9D6F] mt-0.5 font-medium">{sub}</p>
+              )}
             </Card>
           ))}
         </div>
