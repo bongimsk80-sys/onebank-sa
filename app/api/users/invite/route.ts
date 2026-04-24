@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     });
 
     const organisationId = admin?.organisationId ?? null;
-    const orgName        = admin?.organisation?.name ?? "OneBank SA";
+    const orgName        = admin?.organisation?.name ?? "OneBank TMS";
     const inviterName    = admin?.name ?? "Your admin";
 
     // ── Create placeholder user record ─────────────────────────────────────

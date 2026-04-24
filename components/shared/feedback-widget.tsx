@@ -113,7 +113,7 @@ export default function FeedbackWidget() {
                   Share Feedback
                 </h2>
                 <p className="text-[10px] text-[#718096]">
-                  Help us improve OneBank
+                  Help us improve OneBank TMS
                 </p>
               </div>
               <button

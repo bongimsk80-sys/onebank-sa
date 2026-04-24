@@ -132,7 +132,7 @@ export default function LgApplicationsPage() {
             </span>
           </div>
           <p className="text-sm text-[#718096]">
-            Digital LG applications, tracking and management — coming to OneBank SA
+            Digital LG applications, tracking and management — coming to OneBank TMS
           </p>
         </div>
       </div>

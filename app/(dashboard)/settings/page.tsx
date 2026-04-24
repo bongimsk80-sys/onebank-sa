@@ -158,7 +158,7 @@ export default function SettingsPage() {
       <Card className="p-4 rounded-xl border border-[#E2E8F0] bg-white shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-bold text-[#1A202C]">OneBank SA</p>
+            <p className="text-sm font-bold text-[#1A202C]">OneBank TMS</p>
             <p className="text-xs text-[#A0AEC0]">Version 1.0.0 (MVP)</p>
           </div>
           <span className="text-[10px] font-bold px-2 py-1 rounded-lg bg-[#F0FDF4] text-[#27AE60]">

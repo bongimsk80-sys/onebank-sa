@@ -40,7 +40,7 @@ const defaultChannels: NotificationChannel[] = [
   {
     id: "inApp",
     label: "In-App Notifications",
-    description: "Bell icon alerts within OneBank",
+    description: "Bell icon alerts within OneBank TMS",
     icon: <Bell size={16} />,
     enabled: true,
   },

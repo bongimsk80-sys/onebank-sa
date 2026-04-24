@@ -2,8 +2,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — OneBank SA",
-  description: "OneBank South Africa Privacy Policy — POPIA Compliant",
+  title: "Privacy Policy — OneBank TMS",
+  description: "OneBank TMS Privacy Policy — POPIA Compliant",
 };
 
 const EFFECTIVE_DATE  = "18 April 2026";
@@ -20,7 +20,7 @@ export default function PrivacyPage() {
             <div className="w-9 h-9 rounded-full bg-[#D4A017] flex items-center justify-center font-bold text-[#1B4332] text-sm">
               OB
             </div>
-            <span className="font-bold text-lg">OneBank SA</span>
+            <span className="font-bold text-lg">OneBank TMS</span>
           </Link>
           <Link
             href="/login"
@@ -42,7 +42,7 @@ export default function PrivacyPage() {
           {/* POPIA notice */}
           <div className="bg-[#F0FAF4] border border-[#27AE60]/20 rounded-xl px-5 py-4 mb-8">
             <p className="text-sm text-[#1A202C]">
-              <strong>POPIA Compliance:</strong> OneBank South Africa is committed to protecting
+              <strong>POPIA Compliance:</strong> OneBank TMS is committed to protecting
               your personal information in accordance with the{" "}
               <strong>Protection of Personal Information Act, 2013 (POPIA)</strong> and the{" "}
               <strong>Electronic Communications and Transactions Act, 2002 (ECTA)</strong>.
@@ -54,7 +54,7 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-lg font-bold text-[#1A202C] mb-3">1. Who We Are (Responsible Party)</h2>
               <p>
-                OneBank South Africa (Pty) Ltd ("OneBank", "we", "us") is the responsible party as defined
+                OneBank South Africa (Pty) Ltd ("OneBank TMS", "we", "us") is the responsible party as defined
                 under POPIA. We determine the purpose and means of processing your personal information.
               </p>
               <p className="mt-2">
@@ -220,7 +220,7 @@ export default function PrivacyPage() {
 
           {/* Bottom nav */}
           <div className="mt-10 pt-8 border-t border-[#E2E8F0] flex flex-col sm:flex-row gap-3 items-center justify-between text-sm text-[#718096]">
-            <p>© 2026 OneBank South Africa (Pty) Ltd · POPIA Compliant</p>
+            <p>© 2026 OneBank TMS (OneBank South Africa (Pty) Ltd) · POPIA Compliant</p>
             <div className="flex gap-4">
               <Link href="/terms" className="hover:text-[#1B4332] transition-colors">Terms of Service</Link>
               <Link href="/login" className="hover:text-[#1B4332] transition-colors">Sign in</Link>

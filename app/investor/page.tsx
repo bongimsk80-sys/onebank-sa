@@ -184,7 +184,7 @@ function InvestorDashboard({ token }: { token: string }) {
               OB
             </div>
             <div>
-              <p className="font-bold text-lg text-white leading-tight">OneBank SA</p>
+              <p className="font-bold text-lg text-white leading-tight">OneBank TMS</p>
               <p className="text-xs text-[#A0AEC0]">Investor Platform Dashboard</p>
             </div>
           </div>
@@ -342,7 +342,7 @@ function InvestorDashboard({ token }: { token: string }) {
         {/* Footer */}
         <div className="text-center py-6 border-t border-[#2D3748]">
           <p className="text-xs text-[#718096]">
-            OneBank South Africa © 2026 — Investor Platform Dashboard
+            OneBank TMS © 2026 — Investor Platform Dashboard
           </p>
           <p className="text-xs text-[#4A5568] mt-1">
             All figures in South African Rand (ZAR) · Refreshes every 2 minutes · Confidential — do not distribute

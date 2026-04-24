@@ -127,8 +127,8 @@ export default function RegisterPage() {
               OB
             </div>
             <div>
-              <p className="font-bold text-2xl text-white leading-tight">OneBank</p>
-              <p className="text-xs text-[#A0C4B1]">South Africa</p>
+              <p className="font-bold text-2xl text-white leading-tight">OneBank TMS</p>
+              <p className="text-xs text-[#A0C4B1]">Treasury Management</p>
             </div>
           </div>
         </div>
@@ -141,7 +141,7 @@ export default function RegisterPage() {
               <span className="text-[#D4A017]"> treasury smarter</span>
             </h1>
             <p className="text-[#A0C4B1] text-base leading-relaxed">
-              Join South African businesses already using OneBank to streamline
+              Join South African businesses already using OneBank TMS to streamline
               payments, approvals, and cash flow — all in one place.
             </p>
           </div>
@@ -189,7 +189,7 @@ export default function RegisterPage() {
         {/* Footer */}
         <div className="relative z-10">
           <p className="text-xs text-[#718096]">
-            © 2026 OneBank South Africa. All rights reserved.
+            © 2026 OneBank TMS. All rights reserved.
           </p>
           <p className="text-xs text-[#718096] mt-1">
             POPIA Compliant • SARB Regulated • 256-bit Encrypted
@@ -206,7 +206,7 @@ export default function RegisterPage() {
             OB
           </div>
           <div>
-            <p className="font-bold text-lg text-[#1A202C]">OneBank</p>
+            <p className="font-bold text-lg text-[#1A202C]">OneBank TMS</p>
             <p className="text-xs text-[#718096]">South Africa</p>
           </div>
         </div>
@@ -219,7 +219,7 @@ export default function RegisterPage() {
               Create your account
             </h2>
             <p className="text-sm text-[#718096] mt-1">
-              Set up your organisation on OneBank SA — free during beta.
+              Set up your organisation on OneBank TMS — free during beta.
             </p>
           </div>
 
@@ -447,7 +447,7 @@ export default function RegisterPage() {
 
           {/* Mobile footer */}
           <p className="text-xs text-[#A0AEC0] mt-8 text-center lg:hidden">
-            © 2026 OneBank South Africa. All rights reserved.
+            © 2026 OneBank TMS. All rights reserved.
           </p>
         </div>
       </div>

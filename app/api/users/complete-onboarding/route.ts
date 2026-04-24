@@ -107,7 +107,7 @@ export async function PATCH(request: Request) {
       await sendTeamInviteEmail(
         inv.email,
         userName,
-        orgName ?? "OneBank SA",
+        orgName ?? "OneBank TMS",
         inv.role,
         inviteUrl
       );

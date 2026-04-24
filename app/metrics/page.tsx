@@ -110,7 +110,7 @@ export default function MetricsPage() {
                 OB
               </div>
               <div>
-                <p className="font-bold text-lg text-white">OneBank SA</p>
+                <p className="font-bold text-lg text-white">OneBank TMS</p>
                 <p className="text-xs text-[#A0AEC0]">Platform Analytics Dashboard</p>
               </div>
             </div>
@@ -400,7 +400,7 @@ export default function MetricsPage() {
         {/* Footer */}
         <div className="text-center py-6 border-t border-[#2D3748]">
           <p className="text-xs text-[#718096]">
-            OneBank South Africa © 2026 — Platform Analytics Dashboard
+            OneBank TMS © 2026 — Platform Analytics Dashboard
           </p>
           <p className="text-xs text-[#4A5568] mt-1">
             Data refreshes every 60 seconds • All values in South African Rand (ZAR)

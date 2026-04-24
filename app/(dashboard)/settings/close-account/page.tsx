@@ -86,7 +86,7 @@ export default function CloseAccountPage() {
           </div>
           <h2 className="text-xl font-bold text-[#1A202C] mb-3">Request received</h2>
           <p className="text-sm text-[#718096] leading-relaxed max-w-sm mx-auto mb-6">
-            We've sent a confirmation to your email and notified the OneBank SA team. Someone will
+            We've sent a confirmation to your email and notified the OneBank TMS team. Someone will
             contact you within <strong className="text-[#1A202C]">5 business days</strong> to
             guide you through the offboarding process.
           </p>

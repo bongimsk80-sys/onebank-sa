@@ -108,9 +108,9 @@ export default function LoginPage() {
             </div>
             <div>
               <p className="font-bold text-2xl text-white leading-tight">
-                OneBank
+                OneBank TMS
               </p>
-              <p className="text-xs text-[#A0C4B1]">South Africa</p>
+              <p className="text-xs text-[#A0C4B1]">Treasury Management</p>
             </div>
           </div>
         </div>
@@ -169,7 +169,7 @@ export default function LoginPage() {
         {/* Footer */}
         <div className="relative z-10">
           <p className="text-xs text-[#718096]">
-            © 2026 OneBank South Africa. All rights reserved.
+            © 2026 OneBank TMS. All rights reserved.
           </p>
           <p className="text-xs text-[#718096] mt-1">
             POPIA Compliant • SARB Regulated • 256-bit Encrypted
@@ -186,8 +186,8 @@ export default function LoginPage() {
             OB
           </div>
           <div>
-            <p className="font-bold text-lg text-[#1A202C]">OneBank</p>
-            <p className="text-xs text-[#718096]">South Africa</p>
+            <p className="font-bold text-lg text-[#1A202C]">OneBank TMS</p>
+            <p className="text-xs text-[#718096]">Treasury Management</p>
           </div>
         </div>
 
@@ -199,7 +199,7 @@ export default function LoginPage() {
               Welcome back
             </h2>
             <p className="text-sm text-[#718096] mt-1">
-              Sign in to your OneBank account
+              Sign in to your OneBank TMS account
             </p>
           </div>
 
@@ -314,7 +314,7 @@ export default function LoginPage() {
 
           {/* Mobile footer */}
           <p className="text-xs text-[#A0AEC0] mt-8 text-center lg:hidden">
-            © 2026 OneBank South Africa. All rights reserved.
+            © 2026 OneBank TMS. All rights reserved.
           </p>
         </div>
       </div>

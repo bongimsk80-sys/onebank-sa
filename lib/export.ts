@@ -30,7 +30,7 @@ export function exportTransactionsPDF(transactions: any[]) {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
-  doc.text("OneBank South Africa", 14, 14);
+  doc.text("OneBank TMS", 14, 14);
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.text("Transaction Statement", 14, 22);
@@ -89,7 +89,7 @@ export function exportTransactionsPDF(transactions: any[]) {
     doc.setFontSize(8);
     doc.setTextColor(160, 174, 192);
     doc.text(
-      `OneBank South Africa • Confidential • Page ${i} of ${pageCount}`,
+      `OneBank TMS • Confidential • Page ${i} of ${pageCount}`,
       14,
       doc.internal.pageSize.height - 10
     );
@@ -107,7 +107,7 @@ export function exportPaymentsPDF(payments: any[]) {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
-  doc.text("OneBank South Africa", 14, 14);
+  doc.text("OneBank TMS", 14, 14);
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.text("Payments Report", 14, 22);
@@ -164,7 +164,7 @@ export function exportPaymentsPDF(payments: any[]) {
     doc.setFontSize(8);
     doc.setTextColor(160, 174, 192);
     doc.text(
-      `OneBank South Africa • Confidential • Page ${i} of ${pageCount}`,
+      `OneBank TMS • Confidential • Page ${i} of ${pageCount}`,
       14,
       doc.internal.pageSize.height - 10
     );
@@ -300,7 +300,7 @@ export function exportBeneficiariesPDF(beneficiaries: any[]) {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
-  doc.text("OneBank South Africa", 14, 14);
+  doc.text("OneBank TMS", 14, 14);
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.text("Beneficiaries Report", 14, 22);
@@ -352,7 +352,7 @@ export function exportBeneficiariesPDF(beneficiaries: any[]) {
     doc.setFontSize(8);
     doc.setTextColor(160, 174, 192);
     doc.text(
-      `OneBank South Africa • Confidential • Page ${i} of ${pageCount}`,
+      `OneBank TMS • Confidential • Page ${i} of ${pageCount}`,
       14,
       doc.internal.pageSize.height - 10
     );
@@ -370,7 +370,7 @@ export function exportAnalyticsPDF(data: any) {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
-  doc.text("OneBank South Africa", 14, 14);
+  doc.text("OneBank TMS", 14, 14);
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.text("Analytics Report", 14, 22);
@@ -488,7 +488,7 @@ export function exportAnalyticsPDF(data: any) {
     doc.setFontSize(8);
     doc.setTextColor(160, 174, 192);
     doc.text(
-      `OneBank South Africa • Confidential • Page ${i} of ${pageCount}`,
+      `OneBank TMS • Confidential • Page ${i} of ${pageCount}`,
       14,
       doc.internal.pageSize.height - 10
     );
@@ -568,7 +568,7 @@ export async function exportByBankPDF(
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
-  doc.text("OneBank South Africa", 14, 14);
+  doc.text("OneBank TMS", 14, 14);
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.text("Balance by Bank Report", 14, 22);
@@ -619,7 +619,7 @@ export async function exportByBankPDF(
     doc.setPage(i);
     doc.setFontSize(8);
     doc.setTextColor(160, 174, 192);
-    doc.text(`OneBank South Africa • Confidential • Page ${i} of ${pageCount}`, 14, doc.internal.pageSize.height - 10);
+    doc.text(`OneBank TMS • Confidential • Page ${i} of ${pageCount}`, 14, doc.internal.pageSize.height - 10);
   }
 
   doc.save(`onebank-by-bank-${Date.now()}.pdf`);
@@ -652,7 +652,7 @@ export async function exportByStatusPDF(
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
-  doc.text("OneBank South Africa", 14, 14);
+  doc.text("OneBank TMS", 14, 14);
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.text("Payments by Status Report", 14, 22);
@@ -699,7 +699,7 @@ export async function exportByStatusPDF(
     doc.setPage(i);
     doc.setFontSize(8);
     doc.setTextColor(160, 174, 192);
-    doc.text(`OneBank South Africa • Confidential • Page ${i} of ${pageCount}`, 14, doc.internal.pageSize.height - 10);
+    doc.text(`OneBank TMS • Confidential • Page ${i} of ${pageCount}`, 14, doc.internal.pageSize.height - 10);
   }
 
   doc.save(`onebank-by-status-${Date.now()}.pdf`);
@@ -730,7 +730,7 @@ export async function exportByCategoryPDF(
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
-  doc.text("OneBank South Africa", 14, 14);
+  doc.text("OneBank TMS", 14, 14);
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.text("Payments by Category Report", 14, 22);
@@ -778,7 +778,7 @@ export async function exportByCategoryPDF(
     doc.setPage(i);
     doc.setFontSize(8);
     doc.setTextColor(160, 174, 192);
-    doc.text(`OneBank South Africa • Confidential • Page ${i} of ${pageCount}`, 14, doc.internal.pageSize.height - 10);
+    doc.text(`OneBank TMS • Confidential • Page ${i} of ${pageCount}`, 14, doc.internal.pageSize.height - 10);
   }
 
   doc.save(`onebank-by-category-${Date.now()}.pdf`);
@@ -810,7 +810,7 @@ export async function exportCashFlowPDF(
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
-  doc.text("OneBank South Africa", 14, 14);
+  doc.text("OneBank TMS", 14, 14);
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.text("Cash Flow Report — Last 6 Months", 14, 22);
@@ -866,7 +866,7 @@ export async function exportCashFlowPDF(
     doc.setPage(i);
     doc.setFontSize(8);
     doc.setTextColor(160, 174, 192);
-    doc.text(`OneBank South Africa • Confidential • Page ${i} of ${pageCount}`, 14, doc.internal.pageSize.height - 10);
+    doc.text(`OneBank TMS • Confidential • Page ${i} of ${pageCount}`, 14, doc.internal.pageSize.height - 10);
   }
 
   doc.save(`onebank-cashflow-${Date.now()}.pdf`);

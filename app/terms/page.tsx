@@ -2,8 +2,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — OneBank SA",
-  description: "OneBank South Africa Terms of Service",
+  title: "Terms of Service — OneBank TMS",
+  description: "OneBank TMS Terms of Service",
 };
 
 const EFFECTIVE_DATE = "18 April 2026";
@@ -19,7 +19,7 @@ export default function TermsPage() {
             <div className="w-9 h-9 rounded-full bg-[#D4A017] flex items-center justify-center font-bold text-[#1B4332] text-sm">
               OB
             </div>
-            <span className="font-bold text-lg">OneBank SA</span>
+            <span className="font-bold text-lg">OneBank TMS</span>
           </Link>
           <Link
             href="/login"
@@ -42,10 +42,10 @@ export default function TermsPage() {
             <section>
               <h2 className="text-lg font-bold text-[#1A202C] mb-3">1. Acceptance of Terms</h2>
               <p>
-                By accessing or using the OneBank South Africa platform ("Service"), you agree to be
+                By accessing or using the OneBank TMS platform ("Service"), you agree to be
                 bound by these Terms of Service ("Terms"). If you do not agree to all of these Terms,
                 do not use the Service. These Terms constitute a legally binding agreement between
-                you ("User") and OneBank South Africa (Pty) Ltd ("OneBank", "we", "us").
+                you ("User") and OneBank South Africa (Pty) Ltd ("OneBank TMS", "we", "us").
               </p>
             </section>
 
@@ -101,7 +101,7 @@ export default function TermsPage() {
               <h2 className="text-lg font-bold text-[#1A202C] mb-3">6. Intellectual Property</h2>
               <p>
                 All content, branding, software, and intellectual property on the Service is owned by
-                OneBank South Africa (Pty) Ltd. Nothing in these Terms grants you any ownership rights.
+                OneBank TMS (OneBank South Africa (Pty) Ltd). Nothing in these Terms grants you any ownership rights.
                 You may not use our trademarks without prior written consent.
               </p>
             </section>
@@ -109,18 +109,18 @@ export default function TermsPage() {
             <section>
               <h2 className="text-lg font-bold text-[#1A202C] mb-3">7. Limitation of Liability</h2>
               <p>
-                To the maximum extent permitted by South African law, OneBank shall not be liable for
+                To the maximum extent permitted by South African law, OneBank TMS shall not be liable for
                 any indirect, incidental, special, consequential, or punitive damages, including lost
                 profits, arising from your use of the Service. Our total liability shall not exceed the
                 amount you paid us in the 12 months preceding the claim. This limitation does not apply
-                to fraud or wilful misconduct by OneBank.
+                to fraud or wilful misconduct by OneBank TMS.
               </p>
             </section>
 
             <section>
               <h2 className="text-lg font-bold text-[#1A202C] mb-3">8. Indemnification</h2>
               <p>
-                You agree to indemnify and hold harmless OneBank, its directors, employees, and agents
+                You agree to indemnify and hold harmless OneBank TMS, its directors, employees, and agents
                 from any claims, damages, or expenses (including reasonable legal fees) arising out of
                 your use of the Service, your violation of these Terms, or your infringement of any
                 third-party rights.
@@ -168,7 +168,7 @@ export default function TermsPage() {
 
           {/* Bottom nav */}
           <div className="mt-10 pt-8 border-t border-[#E2E8F0] flex flex-col sm:flex-row gap-3 items-center justify-between text-sm text-[#718096]">
-            <p>© 2026 OneBank South Africa (Pty) Ltd</p>
+            <p>© 2026 OneBank TMS (OneBank South Africa (Pty) Ltd)</p>
             <div className="flex gap-4">
               <Link href="/privacy" className="hover:text-[#1B4332] transition-colors">Privacy Policy</Link>
               <Link href="/login" className="hover:text-[#1B4332] transition-colors">Sign in</Link>

@@ -124,7 +124,7 @@ function InviteContent() {
               OB
             </div>
             <div>
-              <p className="font-bold text-sm text-[#1A202C] leading-tight">OneBank SA</p>
+              <p className="font-bold text-sm text-[#1A202C] leading-tight">OneBank TMS</p>
               <p className="text-[10px] text-[#718096]">B2B Treasury Management</p>
             </div>
           </div>
@@ -304,7 +304,7 @@ function InviteContent() {
       </div>
 
       <p className="text-xs text-[#A0AEC0] mt-6 text-center">
-        © 2026 OneBank South Africa •{" "}
+        © 2026 OneBank TMS •{" "}
         <a href="mailto:hello@onebank.co.za" className="hover:text-[#1B4332] transition-colors">
           hello@onebank.co.za
         </a>

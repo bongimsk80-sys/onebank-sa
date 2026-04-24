@@ -67,8 +67,8 @@ export default function Sidebar() {
             OB
           </div>
           <div>
-            <p className="font-bold text-base leading-tight">OneBank</p>
-            <p className="text-xs text-[#A0C4B1]">South Africa</p>
+            <p className="font-bold text-base leading-tight">OneBank TMS</p>
+            <p className="text-xs text-[#A0C4B1]">Treasury Management</p>
           </div>
         </div>
       </div>

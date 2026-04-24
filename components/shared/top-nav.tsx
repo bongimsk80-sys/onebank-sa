@@ -20,7 +20,7 @@ const pageTitles: Record<string, string> = {
 
 export default function TopNav() {
   const pathname = usePathname();
-  const title = pageTitles[pathname] ?? "OneBank";
+  const title = pageTitles[pathname] ?? "OneBank TMS";
   const { unreadCount, refetch } = useNotifications();
   const [showNotifications, setShowNotifications] = useState(false);
 

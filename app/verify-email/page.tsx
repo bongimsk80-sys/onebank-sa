@@ -70,7 +70,7 @@ function VerifyEmailContent() {
               OB
             </div>
             <div className="text-left">
-              <p className="font-bold text-sm text-[#1A202C] leading-tight">OneBank SA</p>
+              <p className="font-bold text-sm text-[#1A202C] leading-tight">OneBank TMS</p>
               <p className="text-[10px] text-[#718096]">B2B Treasury Management</p>
             </div>
           </div>
@@ -100,7 +100,7 @@ function VerifyEmailContent() {
                 Email verified!
               </h1>
               <p className="text-sm text-[#718096] leading-relaxed mb-8">
-                Your account is ready. Sign in to access your OneBank SA treasury dashboard.
+                Your account is ready. Sign in to access your OneBank TMS treasury dashboard.
               </p>
               <button
                 onClick={() => router.push("/login")}
@@ -164,7 +164,7 @@ function VerifyEmailContent() {
 
       {/* Footer */}
       <p className="text-xs text-[#A0AEC0] mt-6 text-center">
-        © 2026 OneBank South Africa. All rights reserved. •{" "}
+        © 2026 OneBank TMS. All rights reserved. •{" "}
         <a href="mailto:hello@onebank.co.za" className="hover:text-[#1B4332] transition-colors">
           hello@onebank.co.za
         </a>

@@ -290,7 +290,7 @@ export default function OnboardingPage() {
               OB
             </div>
             <div>
-              <p className="font-bold text-sm text-[#1A202C] leading-tight">OneBank SA</p>
+              <p className="font-bold text-sm text-[#1A202C] leading-tight">OneBank TMS</p>
               <p className="text-[10px] text-[#A0AEC0]">Treasury Management</p>
             </div>
           </div>

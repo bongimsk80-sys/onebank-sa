@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
   const baseUrl    = process.env.NEXTAUTH_URL ?? "https://onebank-sa-iota.vercel.app";
   const inviteUrl  = `${baseUrl}/invite?token=${newToken}`;
-  const orgName    = admin?.organisation?.name ?? "OneBank SA";
+  const orgName    = admin?.organisation?.name ?? "OneBank TMS";
   const inviterName = admin?.name ?? "Your admin";
 
   // Attempt to send email (may be blocked if domain not verified, but try anyway)
