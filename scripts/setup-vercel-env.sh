@@ -67,7 +67,7 @@ add_env() {
 }
 
 echo ""
-echo "OneBank SA — Vercel Production Env Setup"
+echo "OneBank TMS — Vercel Production Env Setup"
 echo "Project: $PROJECT_ID"
 echo "─────────────────────────────────────────"
 
@@ -78,7 +78,7 @@ add_env "ENCRYPTION_KEY"   "$ENCRYPTION_KEY"
 
 # ── Email sender ──────────────────────────────────────────────────────────────
 # Change this to your verified Resend sender once onebank.co.za is verified
-add_env "RESEND_FROM" "OneBank SA <onboarding@resend.dev>"
+add_env "RESEND_FROM" "OneBank TMS <onboarding@resend.dev>"
 
 # ── App URL (update to your real domain) ─────────────────────────────────────
 add_env "NEXTAUTH_URL" "https://onebank-sa-iota.vercel.app"
