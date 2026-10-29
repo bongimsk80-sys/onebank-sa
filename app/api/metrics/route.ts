@@ -8,9 +8,10 @@ export async function GET(request: Request) {
   const session = await requireRole(["admin"]);
   if (session instanceof NextResponse) return session;
   const orgId = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
 
   // Narrow all queries to the admin's organisation
-  const orgFilter = orgId ? { organisationId: orgId } : {};
+  const orgFilter = { organisationId: orgId };
 
   try {
     const { searchParams } = new URL(request.url);

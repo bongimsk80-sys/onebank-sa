@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useSessionStore } from "@/store/session-store";
+import { Suspense } from "react";
+import { BankConnections } from "@/components/banks/bank-connections";
 import {
   ArrowLeft,
   Plus,
@@ -165,6 +167,11 @@ export default function BankAccountsPage() {
         </button>
       </div>
 
+      {/* Aggregator connections (Stitch / Yodlee / demo data) */}
+      <Suspense fallback={null}>
+        <BankConnections isAdmin={isAdmin} onChanged={fetchAccounts} />
+      </Suspense>
+
       {/* Quota bar */}
       {!loading && (
         <Card className="p-4 rounded-xl border border-[#E2E8F0] bg-white shadow-sm">
@@ -247,7 +254,12 @@ export default function BankAccountsPage() {
                         {account.isActive ? "Active" : "Inactive"}
                       </span>
                     </div>
-                    <p className="text-xs text-[#718096]">{account.accountType}</p>
+                    <p className="text-xs text-[#718096]">
+                      {account.accountType}
+                      <span className="ml-1.5 px-1.5 py-0.5 rounded bg-[#F4F6F8] text-[10px] text-[#4A5568]">
+                        {account.source === "simulated" ? "Demo data" : account.source === "manual" || !account.source ? "Manual entry" : `via ${account.source}`}
+                      </span>
+                    </p>
                     <p className="text-[10px] text-[#A0AEC0] font-mono mt-0.5">
                       {account.accountNumber}
                     </p>
@@ -320,7 +332,7 @@ export default function BankAccountsPage() {
                 contact us to upgrade your plan.
               </p>
               <a
-                href="mailto:hello@onebank.co.za?subject=Plan upgrade request"
+                href="mailto:hello@oneview.co.za?subject=Plan upgrade request"
                 className="inline-flex items-center gap-1 mt-2 text-xs font-semibold text-[#1B4332] hover:underline"
               >
                 Contact us to upgrade →

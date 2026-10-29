@@ -94,8 +94,8 @@ export default function QRAuthPage() {
   const [requireAuth, setRequireAuth] = useState(true);
 
   useEffect(() => {
-    const savedMethod = localStorage.getItem("onebank_qr_auth_method");
-    const savedRequireAuth = localStorage.getItem("onebank_qr_require_auth");
+    const savedMethod = localStorage.getItem("oneview_qr_auth_method");
+    const savedRequireAuth = localStorage.getItem("oneview_qr_require_auth");
     if (savedMethod) setSelectedMethod(savedMethod);
     if (savedRequireAuth) setRequireAuth(savedRequireAuth === "true");
   }, []);
@@ -160,8 +160,8 @@ export default function QRAuthPage() {
   }
 
   function handleSave() {
-    localStorage.setItem("onebank_qr_auth_method", selectedMethod);
-    localStorage.setItem("onebank_qr_require_auth", String(requireAuth));
+    localStorage.setItem("oneview_qr_auth_method", selectedMethod);
+    localStorage.setItem("oneview_qr_require_auth", String(requireAuth));
     setSaved(true);
     setTimeout(() => {
       setSaved(false);

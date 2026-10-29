@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
       valid:   true,
       email:   user.email,
       role:    user.role,
-      orgName: user.organisation?.name ?? "OneBank TMS",
+      orgName: user.organisation?.name ?? "OneView",
     });
   } catch (err) {
     console.error("[validate-invite] Unexpected error:", err);

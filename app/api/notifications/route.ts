@@ -28,10 +28,11 @@ export async function GET() {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
   const orgId = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
 
   try {
     const notifications = await prisma.notification.findMany({
-      where: { ...(orgId ? { organisationId: orgId } : {}) },
+      where: { organisationId: orgId },
       orderBy: { createdAt: "desc" },
       take: 20,
     });
@@ -48,6 +49,7 @@ export async function POST(request: Request) {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
   const orgId = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
 
   try {
     const body = await request.json();
@@ -67,7 +69,7 @@ export async function POST(request: Request) {
         type: data.type ?? "info",
         userId: data.userId,
         link: data.link,
-        ...(orgId ? { organisationId: orgId } : {}),
+        organisationId: orgId,
       },
     });
     return NextResponse.json({ notification }, { status: 201 });
@@ -83,6 +85,7 @@ export async function PATCH(request: Request) {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
   const orgId = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
 
   try {
     const body = await request.json();
@@ -98,14 +101,14 @@ export async function PATCH(request: Request) {
 
     if (data.markAllRead) {
       await prisma.notification.updateMany({
-        where: { ...(orgId ? { organisationId: orgId } : {}) },
+        where: { organisationId: orgId },
         data: { read: true },
       });
       return NextResponse.json({ success: true });
     }
 
     const notification = await prisma.notification.update({
-      where: { id: data.id, ...(orgId ? { organisationId: orgId } : {}) },
+      where: { id: data.id, organisationId: orgId },
       data: { read: true },
     });
     return NextResponse.json({ notification });
@@ -121,6 +124,7 @@ export async function DELETE(request: Request) {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
   const orgId = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
 
   try {
     const body = await request.json();
@@ -133,7 +137,7 @@ export async function DELETE(request: Request) {
     }
 
     await prisma.notification.delete({
-      where: { id: result.data.id, ...(orgId ? { organisationId: orgId } : {}) },
+      where: { id: result.data.id, organisationId: orgId },
     });
     return NextResponse.json({ success: true });
   } catch (error) {

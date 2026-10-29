@@ -54,10 +54,10 @@ export default function ForgotPasswordPage() {
           {/* Logo */}
           <div className="flex items-center gap-2.5 mb-8">
             <div className="w-9 h-9 min-w-[36px] rounded-full bg-[#D4A017] flex items-center justify-center font-bold text-[#1B4332] text-sm flex-shrink-0">
-              OB
+              OV
             </div>
             <div>
-              <p className="font-bold text-sm text-[#1A202C] leading-tight">OneBank TMS</p>
+              <p className="font-bold text-sm text-[#1A202C] leading-tight">OneView</p>
               <p className="text-[10px] text-[#718096]">B2B Treasury Management</p>
             </div>
           </div>
@@ -141,9 +141,9 @@ export default function ForgotPasswordPage() {
       </div>
 
       <p className="text-xs text-[#A0AEC0] mt-6 text-center">
-        © 2026 OneBank TMS •{" "}
-        <a href="mailto:hello@onebank.co.za" className="hover:text-[#1B4332] transition-colors">
-          hello@onebank.co.za
+        © 2026 OneView •{" "}
+        <a href="mailto:hello@oneview.co.za" className="hover:text-[#1B4332] transition-colors">
+          hello@oneview.co.za
         </a>
       </p>
     </div>

@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OneView — multi-bank treasury console for South Africa
 
-## Getting Started
+OneView gives a finance team one view of balances and transactions across its South African banks, with maker-checker payment approvals, transfer limits and a tamper-evident audit trail. During the beta, payment execution is simulated: no money moves.
 
-First, run the development server:
+## Stack
+
+Next.js 16 (App Router) · TypeScript · Prisma 5 + PostgreSQL (Neon) · NextAuth v5 (credentials + TOTP) · Tailwind 4 · Vercel.
+
+## Run locally
 
 ```bash
+cp .env.example .env.local      # fill in DATABASE_URL, AUTH_SECRET, ENCRYPTION_KEY
+npm ci
+npx prisma migrate deploy
+npm run db:seed                 # demo organisation, users and data (refuses to run in production)
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Set `REQUIRE_MFA=false` locally if you do not want to enrol an authenticator for the seeded admin.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Bank data
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+All bank sources implement one interface, `lib/connectors/types.ts → BankConnector`. The sync engine (`lib/connectors/sync.ts`) is the only caller: it refreshes tokens, upserts accounts, de-duplicates transactions with a hash and writes an audit entry.
 
-## Learn More
+| Provider | File | Status |
+| --- | --- | --- |
+| Stitch | `lib/connectors/stitch.ts` | OAuth 2.0 + PKCE consent at Stitch, then GraphQL for accounts, balances and transactions (up to 3 months). Needs `STITCH_*` credentials from Stitch; confirm field names against your Stitch test client before go-live. |
+| Yodlee | `lib/connectors/yodlee.ts` | Core API v1.1 + FastLink. **Disabled** (`YODLEE_ENABLED=false`) until Yodlee confirms South African business-banking coverage in writing. |
+| Demo data | `lib/connectors/simulated.ts` | Deterministic simulated SA bank data for demos. |
 
-To learn more about Next.js, take a look at the following resources:
+Connect banks in **Settings → Bank Accounts → Connect a bank**. Each connection records who consented, when, and for how long (90 days); revoking consent wipes stored tokens and hides the accounts while keeping history for the audit trail.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Security model
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Tenant isolation:** every API route requires an organisation and filters by it; a user without an organisation gets 403.
+- **Two-factor authentication:** TOTP for all users; mandatory for admin, approver and executor before any privileged change (`requireMfa` in `lib/api-auth.ts`).
+- **Secrets at rest:** bank tokens and MFA secrets use AES-256-GCM (`lib/secure-crypto.ts`).
+- **Audit trail:** `ActivityLog` is append-only and hash-chained per organisation (`lib/prisma.ts`); verify with `GET /api/activity-log/verify`.
+- **Website enquiries:** `POST /api/enquiries` accepts only origins in `MARKETING_ORIGINS`, requires privacy consent and has a honeypot and throttle.
 
-## Deploy on Vercel
+## Known gaps (next steps)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Money is stored as `Float`; migrate to integer cents.
+- Postgres row-level security as a second isolation layer.
+- Move the database to a South African region before onboarding real customer data.
+- Direct payment execution stays off until a legal opinion and SARB authorisation or sponsorship are in place.

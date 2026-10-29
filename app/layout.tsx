@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "OneBank TMS",
+  title: "OneView",
   description: "One platform to manage all your South African banking",
 };
 

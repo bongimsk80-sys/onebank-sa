@@ -68,7 +68,7 @@ function Locked() {
         <h1 className="text-xl font-bold text-white mb-2">Restricted Access</h1>
         <p className="text-sm text-[#718096] leading-relaxed">
           This dashboard is for authorised investors and board members only.
-          Please contact <a href="mailto:hello@onebank.co.za" className="text-[#D4A017] hover:underline">hello@onebank.co.za</a> to request access.
+          Please contact <a href="mailto:hello@oneview.co.za" className="text-[#D4A017] hover:underline">hello@oneview.co.za</a> to request access.
         </p>
       </div>
     </div>
@@ -131,7 +131,7 @@ function InvestorDashboard({ token }: { token: string }) {
 
   const heroCards = [
     {
-      label: "Gross Merchandise Value",
+      label: "Simulated payment value",
       value: fmt(summary.gmv),
       sub:   `${pct(summary.gmvGrowthPct)} vs last month`,
       grow:  summary.gmvGrowthPct >= 0,
@@ -176,15 +176,19 @@ function InvestorDashboard({ token }: { token: string }) {
   return (
     <div className="min-h-screen bg-[#0F1117] text-white">
 
+      <div className="bg-[#3D2F00] text-[#F5D76E] text-xs text-center px-4 py-2">
+        Beta data: payments on OneView are simulated during the beta. These figures are platform test activity, not money moved.
+      </div>
+
       {/* Header */}
       <div className="border-b border-[#1A2D3D] bg-[#0D1B13]">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-[#D4A017] flex items-center justify-center font-bold text-[#1B4332] text-sm flex-shrink-0">
-              OB
+              OV
             </div>
             <div>
-              <p className="font-bold text-lg text-white leading-tight">OneBank TMS</p>
+              <p className="font-bold text-lg text-white leading-tight">OneView</p>
               <p className="text-xs text-[#A0AEC0]">Investor Platform Dashboard</p>
             </div>
           </div>
@@ -234,7 +238,7 @@ function InvestorDashboard({ token }: { token: string }) {
         <div className="p-6 rounded-2xl border border-[#2D3748]" style={{ backgroundColor: "#1A1D27" }}>
           <div className="flex items-start justify-between mb-6">
             <div>
-              <h3 className="text-base font-bold text-white">GMV & Organisation Growth</h3>
+              <h3 className="text-base font-bold text-white">Simulated payment value & organisation growth</h3>
               <p className="text-xs text-[#718096] mt-0.5">Last 12 months — gross transaction value vs new client registrations</p>
             </div>
           </div>
@@ -255,7 +259,7 @@ function InvestorDashboard({ token }: { token: string }) {
               <YAxis yAxisId="orgs" orientation="right" tick={{ fontSize: 10, fill: "#718096" }} axisLine={false} tickLine={false} />
               <Tooltip content={<Tip />} />
               <Legend wrapperStyle={{ fontSize: 11, color: "#718096" }} />
-              <Area yAxisId="gmv"  type="monotone" dataKey="gmv"  name="GMV (ZAR)"  stroke="#D4A017" fill="url(#gmvGrad)" strokeWidth={2} dot={false} />
+              <Area yAxisId="gmv"  type="monotone" dataKey="gmv"  name="Simulated value (ZAR)"  stroke="#D4A017" fill="url(#gmvGrad)" strokeWidth={2} dot={false} />
               <Area yAxisId="orgs" type="monotone" dataKey="orgs" name="New Orgs"   stroke="#27AE60" fill="url(#orgGrad)" strokeWidth={2} dot={false} />
             </AreaChart>
           </ResponsiveContainer>
@@ -307,7 +311,7 @@ function InvestorDashboard({ token }: { token: string }) {
         {/* Bank distribution */}
         <div className="p-6 rounded-2xl border border-[#2D3748]" style={{ backgroundColor: "#1A1D27" }}>
           <h3 className="text-base font-bold text-white mb-1">Volume Distribution by Bank</h3>
-          <p className="text-xs text-[#718096] mb-6">GMV and transaction count routed through each bank — all organisations</p>
+          <p className="text-xs text-[#718096] mb-6">Simulated payment value and count by bank — all organisations</p>
           <div className="space-y-4">
             {bankDistribution?.map((bank: any) => {
               const total   = bankDistribution.reduce((s: number, b: any) => s + b.gmv, 0);
@@ -342,7 +346,7 @@ function InvestorDashboard({ token }: { token: string }) {
         {/* Footer */}
         <div className="text-center py-6 border-t border-[#2D3748]">
           <p className="text-xs text-[#718096]">
-            OneBank TMS © 2026 — Investor Platform Dashboard
+            OneView © 2026 — Investor Platform Dashboard
           </p>
           <p className="text-xs text-[#4A5568] mt-1">
             All figures in South African Rand (ZAR) · Refreshes every 2 minutes · Confidential — do not distribute

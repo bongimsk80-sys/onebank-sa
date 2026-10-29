@@ -30,6 +30,7 @@ model Organisation {
   notifications     Notification[]
   erpConnections    ErpConnection[]
   erpInvoices       ErpInvoice[]
+  bankConnections   BankConnection[]
 
   @@map("organisations")
 }
@@ -37,13 +38,13 @@ model Organisation {
 // ─── Core models ──────────────────────────────────────────────────────────────
 
 model User {
-  id                      String    @id @default(cuid())
+  id                      String        @id @default(cuid())
   name                    String
-  email                   String    @unique
+  email                   String        @unique
   password                String
-  role                    String    @default("viewer")
-  isActive                Boolean   @default(true)
-  isVerified              Boolean   @default(false)
+  role                    String        @default("viewer")
+  isActive                Boolean       @default(true)
+  isVerified              Boolean       @default(false)
   verificationToken       String?
   verificationTokenExpiry DateTime?
   resetToken              String?
@@ -51,11 +52,13 @@ model User {
   passwordChangedAt       DateTime? // H12: JWT revocation after password reset
   inviteToken             String?
   inviteTokenExpiry       DateTime?
-  hasCompletedOnboarding  Boolean   @default(false)
+  hasCompletedOnboarding  Boolean       @default(false)
+  mfaSecretEnc            String? // AES-256-GCM encrypted TOTP secret
+  mfaEnabledAt            DateTime?
   organisationId          String?
   organisation            Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  createdAt               DateTime  @default(now())
-  updatedAt               DateTime  @updatedAt
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
 
   @@index([verificationToken])
   @@index([resetToken])
@@ -64,65 +67,76 @@ model User {
 }
 
 model BankAccount {
-  id             String        @id @default(cuid())
-  bank           String
-  accountNumber  String
-  accountType    String
-  balance        Float         @default(0)
-  currency       String        @default("ZAR")
-  color          String
-  isActive       Boolean       @default(true)
-  organisationId String?
-  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  transactions   Transaction[]
+  id               String          @id @default(cuid())
+  bank             String
+  accountNumber    String
+  accountType      String
+  balance          Float           @default(0)
+  availableBalance Float?
+  currency         String          @default("ZAR")
+  color            String
+  isActive         Boolean         @default(true)
+  source           String          @default("manual") // manual | simulated | stitch | yodlee
+  externalId       String? // provider's account id
+  lastSyncedAt     DateTime?
+  connectionId     String?
+  connection       BankConnection? @relation(fields: [connectionId], references: [id], onDelete: SetNull)
+  organisationId   String?
+  organisation     Organisation?   @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  transactions     Transaction[]
 
   @@unique([organisationId, accountNumber])
+  @@unique([connectionId, externalId])
   @@index([organisationId])
   @@map("bank_accounts")
 }
 
 model Transaction {
-  id             String       @id @default(cuid())
+  id             String        @id @default(cuid())
   name           String
   type           String
   amount         Float
-  date           DateTime     @default(now())
+  date           DateTime      @default(now())
   bank           String
   accountNumber  String
   reference      String
-  status         String       @default("completed")
-  bankAccount    BankAccount? @relation(fields: [bankAccountId], references: [id])
+  status         String        @default("completed")
+  bankAccount    BankAccount?  @relation(fields: [bankAccountId], references: [id])
   bankAccountId  String?
+  source         String        @default("manual")
+  externalId     String?
+  dedupeHash     String? // sha256(account|date|amount|reference|description)
   organisationId String?
   organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
+  @@unique([bankAccountId, dedupeHash])
   @@index([organisationId, date(sort: Desc)])
   @@map("transactions")
 }
 
 model Payment {
-  id             String    @id @default(cuid())
+  id             String        @id @default(cuid())
   beneficiary    String
   bank           String
   amount         Float
   type           String
-  status         String    @default("pending")
+  status         String        @default("pending")
   initiatedBy    String
-  initiatorId    String?   // FK to User.id — used for self-approval prevention
-  date           DateTime  @default(now())
+  initiatorId    String? // FK to User.id — used for self-approval prevention
+  date           DateTime      @default(now())
   reference      String
   description    String
-  priority       Boolean   @default(false)
+  priority       Boolean       @default(false)
   scheduledDate  DateTime?
-  isScheduled    Boolean   @default(false)
+  isScheduled    Boolean       @default(false)
   organisationId String?
   organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   @@index([organisationId, status])
   @@index([organisationId, date(sort: Desc)])
@@ -130,22 +144,22 @@ model Payment {
 }
 
 model Beneficiary {
-  id              String    @id @default(cuid())
+  id              String        @id @default(cuid())
   name            String
   type            String
   category        String
-  status          String    @default("active")
+  status          String        @default("active")
   accountNumber   String
   bank            String
   branchCode      String
-  totalPayments   Int       @default(0)
-  lastPayment     Float     @default(0)
+  totalPayments   Int           @default(0)
+  lastPayment     Float         @default(0)
   lastPaymentDate DateTime?
   tag             String
   organisationId  String?
   organisation    Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   @@unique([organisationId, accountNumber])
   @@index([organisationId])
@@ -153,40 +167,40 @@ model Beneficiary {
 }
 
 model ApprovalWorkflow {
-  id             String   @id @default(cuid())
+  id             String        @id @default(cuid())
   name           String
   description    String
-  minAmount      Float    @default(0)
-  maxAmount      Float    @default(999999999)
+  minAmount      Float         @default(0)
+  maxAmount      Float         @default(999999999)
   steps          String
-  isActive       Boolean  @default(true)
+  isActive       Boolean       @default(true)
   organisationId String?
   organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   @@index([organisationId])
   @@map("approval_workflows")
 }
 
 model TransferLimit {
-  id             String   @id @default(cuid())
+  id             String        @id @default(cuid())
   role           String
-  dailyLimit     Float    @default(0)
-  perTxLimit     Float    @default(0)
-  monthlyLimit   Float    @default(0)
-  isActive       Boolean  @default(true)
+  dailyLimit     Float         @default(0)
+  perTxLimit     Float         @default(0)
+  monthlyLimit   Float         @default(0)
+  isActive       Boolean       @default(true)
   organisationId String?
   organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   @@unique([organisationId, role])
   @@map("transfer_limits")
 }
 
 model ActivityLog {
-  id             String   @id @default(cuid())
+  id             String        @id @default(cuid())
   action         String
   description    String
   userId         String?
@@ -194,67 +208,133 @@ model ActivityLog {
   entityType     String?
   entityId       String?
   ipAddress      String?
-  status         String   @default("success")
+  status         String        @default("success")
+  prevHash       String? // hash of the previous entry in this organisation's chain
+  hash           String? // sha256(prevHash + canonical entry)
   organisationId String?
   organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  createdAt      DateTime @default(now())
+  createdAt      DateTime      @default(now())
 
   @@index([organisationId, createdAt(sort: Desc)])
   @@map("activity_logs")
 }
 
 model Notification {
-  id             String   @id @default(cuid())
+  id             String        @id @default(cuid())
   title          String
   message        String
-  type           String   @default("info")
-  read           Boolean  @default(false)
+  type           String        @default("info")
+  read           Boolean       @default(false)
   userId         String?
   link           String?
   organisationId String?
   organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   @@index([organisationId, read])
   @@map("notifications")
 }
 
 model ErpConnection {
-  id             String    @id @default(cuid())
+  id             String        @id @default(cuid())
   name           String
   provider       String
-  status         String    @default("disconnected")
+  status         String        @default("disconnected")
   apiKey         String?
   apiUrl         String?
   lastSyncedAt   DateTime?
   organisationId String?
   organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   @@map("erp_connections")
 }
 
 model ErpInvoice {
-  id             String   @id @default(cuid())
+  id             String        @id @default(cuid())
   erpProvider    String
   invoiceNumber  String
   vendor         String
   amount         Float
   dueDate        DateTime
-  status         String   @default("pending")
+  status         String        @default("pending")
   paymentId      String?
   organisationId String?
   organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   @@index([organisationId, dueDate])
   @@map("erp_invoices")
 }
 
+// ─── Bank data connections (aggregators) ──────────────────────────────────────
+
+model BankConnection {
+  id                 String        @id @default(cuid())
+  provider           String // simulated | stitch | yodlee
+  status             String        @default("pending") // pending | active | error | revoked
+  label              String?
+  externalUserId     String?
+  accessTokenEnc     String? // AES-256-GCM
+  refreshTokenEnc    String? // AES-256-GCM
+  tokenExpiresAt     DateTime?
+  scopes             String?
+  consentGrantedAt   DateTime?
+  consentGrantedById String?
+  consentExpiresAt   DateTime?
+  revokedAt          DateTime?
+  lastSyncedAt       DateTime?
+  lastError          String?
+  organisationId     String
+  organisation       Organisation  @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  accounts           BankAccount[]
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@index([organisationId])
+  @@map("bank_connections")
+}
+
+// Short-lived OAuth state for provider redirects (PKCE verifier, nonce, CSRF state)
+model ConnectionAuthState {
+  id              String   @id @default(cuid())
+  state           String   @unique
+  provider        String
+  codeVerifierEnc String
+  nonce           String
+  userId          String
+  organisationId  String
+  expiresAt       DateTime
+  createdAt       DateTime @default(now())
+
+  @@map("connection_auth_states")
+}
+
 // ─── Platform-level models (no org scope) ─────────────────────────────────────
+
+// Demo requests from the marketing website
+model Enquiry {
+  id                String   @id @default(cuid())
+  firstName         String
+  lastName          String
+  email             String
+  phone             String?
+  company           String
+  role              String?
+  banks             String?
+  message           String?
+  consentProcessing Boolean // required: agreed to processing under the privacy notice
+  consentMarketing  Boolean  @default(false)
+  source            String   @default("website")
+  ipAddress         String?
+  createdAt         DateTime @default(now())
+
+  @@index([createdAt(sort: Desc)])
+  @@map("enquiries")
+}
 
 model Feedback {
   id         String   @id @default(cuid())

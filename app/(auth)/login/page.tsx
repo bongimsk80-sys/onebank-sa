@@ -8,18 +8,18 @@ import { Input } from "@/components/ui/input";
 import { Eye, EyeOff, Loader2, CheckCircle } from "lucide-react";
 
 const demoUsers = [
-  { role: "Admin", email: "admin@onebank.co.za", password: "OneBankAdmin2026!" },
-  { role: "Approver", email: "approver@onebank.co.za", password: "OneBankApprove2026!" },
-  { role: "Initiator", email: "initiator@onebank.co.za", password: "OneBankInit2026!" },
-  { role: "Reviewer", email: "reviewer@onebank.co.za", password: "OneBankReview2026!" },
-  { role: "Executor", email: "executor@onebank.co.za", password: "OneBankExec2026!" },
-  { role: "Viewer", email: "viewer@onebank.co.za", password: "OneBankView2026!" },
+  { role: "Admin", email: "admin@oneview.co.za", password: "OneViewAdmin2026!" },
+  { role: "Approver", email: "approver@oneview.co.za", password: "OneViewApprove2026!" },
+  { role: "Initiator", email: "initiator@oneview.co.za", password: "OneViewInit2026!" },
+  { role: "Reviewer", email: "reviewer@oneview.co.za", password: "OneViewReview2026!" },
+  { role: "Executor", email: "executor@oneview.co.za", password: "OneViewExec2026!" },
+  { role: "Viewer", email: "viewer@oneview.co.za", password: "OneViewView2026!" },
 ];
 
 const features = [
   "Aggregate all your SA bank accounts in one place",
   "Full payment workflow with multi-level approvals",
-  "Real-time analytics and cash flow reporting",
+  "Consolidated analytics and cash flow reporting",
   "ERP integration with Sage, SAP, Oracle & more",
   "Role-based access for your entire treasury team",
 ];
@@ -31,6 +31,8 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [otp, setOtp] = useState("");
+  const [needsOtp, setNeedsOtp] = useState(false);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -40,8 +42,16 @@ export default function LoginPage() {
     const result = await signIn("credentials", {
       email,
       password,
+      otp,
       redirect: false,
     });
+
+    if (result?.code === "mfa_required" || result?.code === "mfa_invalid") {
+      setNeedsOtp(true);
+      setError(result.code === "mfa_invalid" ? "That authenticator code is not valid. Try the latest code." : "Enter the 6-digit code from your authenticator app.");
+      setLoading(false);
+      return;
+    }
 
     if (result?.error) {
       // NextAuth surfaces auth-callback throws as "CredentialsSignin".
@@ -104,11 +114,11 @@ export default function LoginPage() {
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-12 h-12 rounded-full bg-[#D4A017] flex items-center justify-center font-bold text-[#1B4332] text-lg">
-              OB
+              OV
             </div>
             <div>
               <p className="font-bold text-2xl text-white leading-tight">
-                OneBank TMS
+                OneView
               </p>
               <p className="text-xs text-[#A0C4B1]">Treasury Management</p>
             </div>
@@ -169,7 +179,7 @@ export default function LoginPage() {
         {/* Footer */}
         <div className="relative z-10">
           <p className="text-xs text-[#718096]">
-            © 2026 OneBank TMS. All rights reserved.
+            © 2026 OneView. All rights reserved.
           </p>
           <p className="text-xs text-[#718096] mt-1">
             POPIA Compliant • SARB Regulated • 256-bit Encrypted
@@ -183,10 +193,10 @@ export default function LoginPage() {
         {/* Mobile logo */}
         <div className="flex items-center gap-3 mb-8 lg:hidden">
           <div className="w-10 h-10 rounded-full bg-[#1B4332] flex items-center justify-center text-white font-bold">
-            OB
+            OV
           </div>
           <div>
-            <p className="font-bold text-lg text-[#1A202C]">OneBank TMS</p>
+            <p className="font-bold text-lg text-[#1A202C]">OneView</p>
             <p className="text-xs text-[#718096]">Treasury Management</p>
           </div>
         </div>
@@ -199,7 +209,7 @@ export default function LoginPage() {
               Welcome back
             </h2>
             <p className="text-sm text-[#718096] mt-1">
-              Sign in to your OneBank TMS account
+              Sign in to your OneView account
             </p>
           </div>
 
@@ -218,7 +228,7 @@ export default function LoginPage() {
               </label>
               <Input
                 type="email"
-                placeholder="you@onebank.co.za"
+                placeholder="you@oneview.co.za"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="bg-white border-[#E2E8F0] rounded-xl text-sm h-12"
@@ -248,6 +258,24 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
+
+            {needsOtp && (
+              <div>
+                <label className="text-xs font-semibold text-[#1A202C] mb-1.5 block">
+                  Authenticator code
+                </label>
+                <Input
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  placeholder="123 456"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  className="bg-white border-[#E2E8F0] rounded-xl text-sm h-12 tracking-widest"
+                  autoFocus
+                  required
+                />
+              </div>
+            )}
 
             <div className="flex justify-end">
               <Link
@@ -314,7 +342,7 @@ export default function LoginPage() {
 
           {/* Mobile footer */}
           <p className="text-xs text-[#A0AEC0] mt-8 text-center lg:hidden">
-            © 2026 OneBank TMS. All rights reserved.
+            © 2026 OneView. All rights reserved.
           </p>
         </div>
       </div>

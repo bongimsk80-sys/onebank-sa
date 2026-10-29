@@ -86,15 +86,15 @@ export default function CloseAccountPage() {
           </div>
           <h2 className="text-xl font-bold text-[#1A202C] mb-3">Request received</h2>
           <p className="text-sm text-[#718096] leading-relaxed max-w-sm mx-auto mb-6">
-            We've sent a confirmation to your email and notified the OneBank TMS team. Someone will
+            We've sent a confirmation to your email and notified the OneView team. Someone will
             contact you within <strong className="text-[#1A202C]">5 business days</strong> to
             guide you through the offboarding process.
           </p>
           <p className="text-sm text-[#718096] leading-relaxed max-w-sm mx-auto mb-8">
             Your account remains fully active until the process is complete. If you've changed your
             mind, reply to the confirmation email or contact us at{" "}
-            <a href="mailto:hello@onebank.co.za" className="text-[#1B4332] font-medium">
-              hello@onebank.co.za
+            <a href="mailto:hello@oneview.co.za" className="text-[#1B4332] font-medium">
+              hello@oneview.co.za
             </a>
             .
           </p>
@@ -289,8 +289,8 @@ export default function CloseAccountPage() {
           {/* Help */}
           <p className="text-center text-xs text-[#A0AEC0] pb-2">
             Having trouble or want to speak to someone first?{" "}
-            <a href="mailto:hello@onebank.co.za" className="text-[#1B4332] font-medium hover:underline">
-              hello@onebank.co.za
+            <a href="mailto:hello@oneview.co.za" className="text-[#1B4332] font-medium hover:underline">
+              hello@oneview.co.za
             </a>
           </p>
         </>

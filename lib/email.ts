@@ -1,11 +1,16 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Created on first send so builds and local runs work without RESEND_API_KEY.
+let _resend: Resend | null = null;
+function resendClient(): Resend {
+  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY ?? "re_missing_key");
+  return _resend;
+}
 
-// RESEND_FROM should be set to your verified sender, e.g. "OneBank TMS <hello@onebank.co.za>".
+// RESEND_FROM should be set to your verified sender, e.g. "OneView <hello@oneview.co.za>".
 // Falls back to Resend's shared test domain for local/staging environments where
 // the custom domain hasn't been verified yet.
-const FROM = process.env.RESEND_FROM ?? "OneBank TMS <onboarding@resend.dev>";
+const FROM = process.env.RESEND_FROM ?? "OneView <onboarding@resend.dev>";
 
 // ─── Brand constants ────────────────────────────────────────────────────────
 const BRAND = {
@@ -40,7 +45,7 @@ function header(): string {
               line-height:44px;
             ">OB</td>
             <td style="padding-left:12px;">
-              <div style="font-family:${BRAND.font};font-size:20px;font-weight:bold;color:#ffffff;line-height:1.2;">OneBank TMS</div>
+              <div style="font-family:${BRAND.font};font-size:20px;font-weight:bold;color:#ffffff;line-height:1.2;">OneView</div>
               <div style="font-family:${BRAND.font};font-size:11px;color:#A0C4B1;margin-top:2px;">B2B Treasury Management</div>
             </td>
           </tr>
@@ -55,13 +60,13 @@ function footer(): string {
     <tr>
       <td style="background:#F4F6F8;border-top:1px solid ${BRAND.border};padding:24px 40px;text-align:center;">
         <p style="font-family:${BRAND.font};font-size:12px;color:${BRAND.textMuted};margin:0 0 6px;">
-          OneBank TMS &bull; B2B Treasury Management Platform
+          OneView &bull; B2B Treasury Management Platform
         </p>
         <p style="font-family:${BRAND.font};font-size:12px;color:${BRAND.textMuted};margin:0 0 6px;">
-          <a href="mailto:hello@onebank.co.za" style="color:${BRAND.green};text-decoration:none;">hello@onebank.co.za</a>
+          <a href="mailto:hello@oneview.co.za" style="color:${BRAND.green};text-decoration:none;">hello@oneview.co.za</a>
         </p>
         <p style="font-family:${BRAND.font};font-size:11px;color:#A0AEC0;margin:0;">
-          &copy; ${new Date().getFullYear()} OneBank TMS. All rights reserved.
+          &copy; ${new Date().getFullYear()} OneView. All rights reserved.
         </p>
       </td>
     </tr>
@@ -142,7 +147,7 @@ export async function sendEmail({ to, subject, html, replyTo }: SendEmailOptions
   }
 
   try {
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await resendClient().emails.send({
       from: FROM,
       to,
       subject,
@@ -174,7 +179,7 @@ export async function sendVerificationEmail(
       Verify your email address
     </h1>
     <p style="font-family:${BRAND.font};font-size:14px;color:${BRAND.textMuted};margin:0 0 20px;line-height:1.6;">
-      Hi ${name}, welcome to OneBank TMS. Please verify your email address to activate your account and get access to your treasury dashboard.
+      Hi ${name}, welcome to OneView. Please verify your email address to activate your account and get access to your treasury dashboard.
     </p>
     <div style="background:#F0FAF4;border-left:4px solid ${BRAND.gold};border-radius:0 8px 8px 0;padding:16px 20px;margin-bottom:4px;">
       <p style="font-family:${BRAND.font};font-size:13px;color:${BRAND.textMuted};margin:0;">
@@ -190,7 +195,7 @@ export async function sendVerificationEmail(
 
   return sendEmail({
     to,
-    subject: "Verify your OneBank TMS email address",
+    subject: "Verify your OneView email address",
     html,
   });
 }
@@ -207,12 +212,12 @@ export async function sendPasswordResetEmail(
       Reset your password
     </h1>
     <p style="font-family:${BRAND.font};font-size:14px;color:${BRAND.textMuted};margin:0 0 20px;line-height:1.6;">
-      Hi ${name}, we received a request to reset the password for your OneBank TMS account. Click the button below to choose a new password.
+      Hi ${name}, we received a request to reset the password for your OneView account. Click the button below to choose a new password.
     </p>
     <div style="background:#FFF8EC;border-left:4px solid ${BRAND.gold};border-radius:0 8px 8px 0;padding:16px 20px;margin-bottom:4px;">
       <p style="font-family:${BRAND.font};font-size:13px;color:${BRAND.textMuted};margin:0;">
         This link expires in <strong style="color:${BRAND.textDark};">1 hour</strong>. If you didn't request a password reset, please contact
-        <a href="mailto:hello@onebank.co.za" style="color:${BRAND.green};">hello@onebank.co.za</a> immediately.
+        <a href="mailto:hello@oneview.co.za" style="color:${BRAND.green};">hello@oneview.co.za</a> immediately.
       </p>
     </div>
     ${ctaButton("Reset Password", resetUrl)}
@@ -224,7 +229,7 @@ export async function sendPasswordResetEmail(
 
   return sendEmail({
     to,
-    subject: "Reset your OneBank TMS password",
+    subject: "Reset your OneView password",
     html,
   });
 }
@@ -244,7 +249,7 @@ export async function sendTeamInviteEmail(
     </h1>
     <p style="font-family:${BRAND.font};font-size:14px;color:${BRAND.textMuted};margin:0 0 20px;line-height:1.6;">
       <strong style="color:${BRAND.textDark};">${inviterName}</strong> has invited you to join
-      <strong style="color:${BRAND.textDark};">${orgName}</strong> on OneBank TMS as a
+      <strong style="color:${BRAND.textDark};">${orgName}</strong> on OneView as a
       <strong style="color:${BRAND.textDark};">${role}</strong>.
     </p>
     <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#F0FAF4;border-radius:10px;margin-bottom:4px;">
@@ -274,7 +279,7 @@ export async function sendTeamInviteEmail(
 
   return sendEmail({
     to,
-    subject: `${inviterName} invited you to ${orgName} on OneBank TMS`,
+    subject: `${inviterName} invited you to ${orgName} on OneView`,
     html,
   });
 }
@@ -325,7 +330,7 @@ export async function sendWelcomeEmail(
         margin-bottom:16px;
       ">OB</div>
       <h1 style="font-family:${BRAND.font};font-size:24px;font-weight:bold;color:${BRAND.textDark};margin:0 0 8px;">
-        Welcome to OneBank TMS, ${name}!
+        Welcome to OneView, ${name}!
       </h1>
       <p style="font-family:${BRAND.font};font-size:14px;color:${BRAND.textMuted};margin:0;">
         Your account for <strong style="color:${BRAND.textDark};">${orgName}</strong> is ready.
@@ -336,22 +341,22 @@ export async function sendWelcomeEmail(
       ${featureRows}
     </table>
 
-    ${ctaButton("Go to Dashboard", `${process.env.NEXTAUTH_URL ?? "https://onebank-sa-iota.vercel.app"}/overview`)}
+    ${ctaButton("Go to Dashboard", `${process.env.NEXTAUTH_URL ?? "http://localhost:3000"}/overview`)}
 
     <p style="font-family:${BRAND.font};font-size:13px;color:${BRAND.textMuted};margin-top:28px;line-height:1.6;text-align:center;">
       Need help getting started? Reply to this email or reach us at<br/>
-      <a href="mailto:hello@onebank.co.za" style="color:${BRAND.green};font-weight:bold;">hello@onebank.co.za</a>
+      <a href="mailto:hello@oneview.co.za" style="color:${BRAND.green};font-weight:bold;">hello@oneview.co.za</a>
     </p>
   `);
 
   return sendEmail({
     to,
-    subject: `Welcome to OneBank TMS — your treasury dashboard is ready`,
+    subject: `Welcome to OneView — your treasury dashboard is ready`,
     html,
   });
 }
 
-// ─── Template: Close-Account Request (internal alert to OneBank TMS team) ─────
+// ─── Template: Close-Account Request (internal alert to OneView team) ─────
 
 export interface CloseAccountEmailPayload {
   adminName:   string;
@@ -423,7 +428,7 @@ export async function sendCloseAccountRequestToTeam(payload: CloseAccountEmailPa
   `);
 
   return sendEmail({
-    to:      "hello@onebank.co.za",
+    to:      "hello@oneview.co.za",
     subject: `[Action Required] Account closure request — ${orgName}`,
     html,
     replyTo: adminEmail,
@@ -483,7 +488,7 @@ export async function sendCloseAccountConfirmationToAdmin(payload: CloseAccountE
       <p style="font-family:${BRAND.font};font-size:13px;color:${BRAND.textMuted};margin:0;line-height:1.7;">
         <strong style="color:${BRAND.textDark};">Changed your mind?</strong><br/>
         If you'd like to cancel this request, simply reply to this email or contact us at
-        <a href="mailto:hello@onebank.co.za" style="color:${BRAND.green};">hello@onebank.co.za</a>
+        <a href="mailto:hello@oneview.co.za" style="color:${BRAND.green};">hello@oneview.co.za</a>
         before our team contacts you.
       </p>
     </div>
@@ -491,13 +496,13 @@ export async function sendCloseAccountConfirmationToAdmin(payload: CloseAccountE
 
   return sendEmail({
     to:      payload.adminEmail,
-    subject: `Your OneBank TMS account closure request has been received`,
+    subject: `Your OneView account closure request has been received`,
     html,
-    replyTo: "hello@onebank.co.za",
+    replyTo: "hello@oneview.co.za",
   });
 }
 
-// ─── Template: LG Waitlist Notification (internal alert to OneBank TMS team) ──
+// ─── Template: LG Waitlist Notification (internal alert to OneView team) ──
 
 export interface LgWaitlistEmailPayload {
   userName:  string;
@@ -559,7 +564,7 @@ export async function sendLgWaitlistNotification(payload: LgWaitlistEmailPayload
   `);
 
   return sendEmail({
-    to:      "hello@onebank.co.za",
+    to:      "hello@oneview.co.za",
     subject: `[LG Waitlist] ${orgName} — ${lgType}`,
     html,
     replyTo: userEmail,

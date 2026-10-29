@@ -1,7 +1,14 @@
-import NextAuth from "next-auth";
+import NextAuth, { CredentialsSignin } from "next-auth";
+import { authenticator } from "otplib";
+import { open as unseal } from "@/lib/secure-crypto";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+
+class MfaRequired extends CredentialsSignin { code = "mfa_required"; }
+class MfaInvalid extends CredentialsSignin { code = "mfa_invalid"; }
+
+authenticator.options = { window: 1 }; // accept the previous/next 30s step for clock drift
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -10,6 +17,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        otp: { label: "Authenticator code", type: "text" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
@@ -27,6 +35,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             verificationToken:      true,
             organisationId:         true,
             hasCompletedOnboarding: true,
+            mfaSecretEnc:           true,
+            mfaEnabledAt:           true,
           },
         });
 
@@ -44,6 +54,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           user.password
         );
         if (!isValid) return null;
+
+        // Second factor: required once the user has enrolled an authenticator.
+        if (user.mfaEnabledAt && user.mfaSecretEnc) {
+          const otp = String(credentials.otp ?? "").replace(/\s/g, "");
+          if (!otp) throw new MfaRequired();
+          if (!authenticator.verify({ token: otp, secret: unseal(user.mfaSecretEnc) })) throw new MfaInvalid();
+        }
 
         // Resolve org name once at login — cheap single query, stored in JWT.
         let orgName: string | null = null;
@@ -63,6 +80,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           organisationId:         user.organisationId,
           isVerified:             user.isVerified,
           hasCompletedOnboarding: user.hasCompletedOnboarding,
+          mfaEnabled:             Boolean(user.mfaEnabledAt),
           orgName,
         };
       },
@@ -80,6 +98,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.isVerified             = (user as any).isVerified ?? false;
         token.hasCompletedOnboarding = (user as any).hasCompletedOnboarding ?? false;
         token.orgName                = (user as any).orgName ?? null;
+        token.mfaEnabled             = (user as any).mfaEnabled ?? false;
         // Record when this JWT was issued (epoch seconds) — used to invalidate
         // tokens after a password reset (H12).
         token.issuedAt               = Math.floor(Date.now() / 1000);
@@ -93,6 +112,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           token.name = updateData.name;
         if (updateData.orgName !== undefined)
           token.orgName = updateData.orgName;
+        if (updateData.mfaEnabled !== undefined)
+          token.mfaEnabled = Boolean(updateData.mfaEnabled);
       }
 
       return token;
@@ -110,6 +131,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         (session.user as any).hasCompletedOnboarding = token.hasCompletedOnboarding ?? false;
         (session.user as any).orgName                = token.orgName ?? null;
         (session.user as any).issuedAt               = token.issuedAt ?? null;
+        (session.user as any).mfaEnabled             = token.mfaEnabled ?? false;
       }
       return session;
     },

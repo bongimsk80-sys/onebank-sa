@@ -44,6 +44,7 @@ export async function PATCH(request: Request) {
 
   const userId   = (session.user as any).id as string;
   const orgId    = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
   const orgName  = (session.user as any).orgName as string | null;
   const userName = (session.user as any).name  as string;
 
@@ -70,7 +71,7 @@ export async function PATCH(request: Request) {
           currency:      "ZAR",
           color:         b.color ?? BANK_COLORS[b.bank] ?? "#1B4332",
           isActive:      true,
-          ...(orgId ? { organisationId: orgId } : {}),
+          organisationId: orgId,
         })),
         skipDuplicates: true,
       });
@@ -99,7 +100,7 @@ export async function PATCH(request: Request) {
           isVerified:        false,
           inviteToken,
           inviteTokenExpiry: inviteTokenExpiry(),
-          ...(orgId ? { organisationId: orgId } : {}),
+          organisationId: orgId,
         },
       });
 
@@ -107,7 +108,7 @@ export async function PATCH(request: Request) {
       await sendTeamInviteEmail(
         inv.email,
         userName,
-        orgName ?? "OneBank TMS",
+        orgName ?? "OneView",
         inv.role,
         inviteUrl
       );

@@ -30,7 +30,7 @@ export function exportTransactionsPDF(transactions: any[]) {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
-  doc.text("OneBank TMS", 14, 14);
+  doc.text("OneView", 14, 14);
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.text("Transaction Statement", 14, 22);
@@ -89,13 +89,13 @@ export function exportTransactionsPDF(transactions: any[]) {
     doc.setFontSize(8);
     doc.setTextColor(160, 174, 192);
     doc.text(
-      `OneBank TMS • Confidential • Page ${i} of ${pageCount}`,
+      `OneView • Confidential • Page ${i} of ${pageCount}`,
       14,
       doc.internal.pageSize.height - 10
     );
   }
 
-  doc.save(`onebank-transactions-${Date.now()}.pdf`);
+  doc.save(`oneview-transactions-${Date.now()}.pdf`);
 }
 
 export function exportPaymentsPDF(payments: any[]) {
@@ -107,7 +107,7 @@ export function exportPaymentsPDF(payments: any[]) {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
-  doc.text("OneBank TMS", 14, 14);
+  doc.text("OneView", 14, 14);
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.text("Payments Report", 14, 22);
@@ -164,13 +164,13 @@ export function exportPaymentsPDF(payments: any[]) {
     doc.setFontSize(8);
     doc.setTextColor(160, 174, 192);
     doc.text(
-      `OneBank TMS • Confidential • Page ${i} of ${pageCount}`,
+      `OneView • Confidential • Page ${i} of ${pageCount}`,
       14,
       doc.internal.pageSize.height - 10
     );
   }
 
-  doc.save(`onebank-payments-${Date.now()}.pdf`);
+  doc.save(`oneview-payments-${Date.now()}.pdf`);
 }
 
 // ─── EXCEL EXPORTS ───────────────────────────────────────────
@@ -215,7 +215,7 @@ export function exportTransactionsExcel(transactions: any[]) {
   wsSummary["!cols"] = [{ wch: 25 }, { wch: 20 }];
   XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
 
-  XLSX.writeFile(wb, `onebank-transactions-${Date.now()}.xlsx`);
+  XLSX.writeFile(wb, `oneview-transactions-${Date.now()}.xlsx`);
 }
 
 export function exportPaymentsExcel(payments: any[]) {
@@ -259,7 +259,7 @@ export function exportPaymentsExcel(payments: any[]) {
   wsSummary["!cols"] = [{ wch: 25 }, { wch: 20 }];
   XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
 
-  XLSX.writeFile(wb, `onebank-payments-${Date.now()}.xlsx`);
+  XLSX.writeFile(wb, `oneview-payments-${Date.now()}.xlsx`);
 }
 
 export function exportBeneficiariesExcel(beneficiaries: any[]) {
@@ -288,7 +288,7 @@ export function exportBeneficiariesExcel(beneficiaries: any[]) {
   ];
 
   XLSX.utils.book_append_sheet(wb, ws, "Beneficiaries");
-  XLSX.writeFile(wb, `onebank-beneficiaries-${Date.now()}.xlsx`);
+  XLSX.writeFile(wb, `oneview-beneficiaries-${Date.now()}.xlsx`);
 }
 
 export function exportBeneficiariesPDF(beneficiaries: any[]) {
@@ -300,7 +300,7 @@ export function exportBeneficiariesPDF(beneficiaries: any[]) {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
-  doc.text("OneBank TMS", 14, 14);
+  doc.text("OneView", 14, 14);
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.text("Beneficiaries Report", 14, 22);
@@ -352,13 +352,13 @@ export function exportBeneficiariesPDF(beneficiaries: any[]) {
     doc.setFontSize(8);
     doc.setTextColor(160, 174, 192);
     doc.text(
-      `OneBank TMS • Confidential • Page ${i} of ${pageCount}`,
+      `OneView • Confidential • Page ${i} of ${pageCount}`,
       14,
       doc.internal.pageSize.height - 10
     );
   }
 
-  doc.save(`onebank-beneficiaries-${Date.now()}.pdf`);
+  doc.save(`oneview-beneficiaries-${Date.now()}.pdf`);
 }
 
 export function exportAnalyticsPDF(data: any) {
@@ -370,7 +370,7 @@ export function exportAnalyticsPDF(data: any) {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
-  doc.text("OneBank TMS", 14, 14);
+  doc.text("OneView", 14, 14);
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.text("Analytics Report", 14, 22);
@@ -488,13 +488,13 @@ export function exportAnalyticsPDF(data: any) {
     doc.setFontSize(8);
     doc.setTextColor(160, 174, 192);
     doc.text(
-      `OneBank TMS • Confidential • Page ${i} of ${pageCount}`,
+      `OneView • Confidential • Page ${i} of ${pageCount}`,
       14,
       doc.internal.pageSize.height - 10
     );
   }
 
-  doc.save(`onebank-analytics-${Date.now()}.pdf`);
+  doc.save(`oneview-analytics-${Date.now()}.pdf`);
 }
 
 export function exportAnalyticsExcel(data: any) {
@@ -555,7 +555,7 @@ export function exportAnalyticsExcel(data: any) {
   ];
   XLSX.utils.book_append_sheet(wb, wsCashFlow, "Cash Flow");
 
-  XLSX.writeFile(wb, `onebank-analytics-${Date.now()}.xlsx`);
+  XLSX.writeFile(wb, `oneview-analytics-${Date.now()}.xlsx`);
 }
 export async function exportByBankPDF(
   bankBalances: any[],
@@ -568,7 +568,7 @@ export async function exportByBankPDF(
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
-  doc.text("OneBank TMS", 14, 14);
+  doc.text("OneView", 14, 14);
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.text("Balance by Bank Report", 14, 22);
@@ -619,10 +619,10 @@ export async function exportByBankPDF(
     doc.setPage(i);
     doc.setFontSize(8);
     doc.setTextColor(160, 174, 192);
-    doc.text(`OneBank TMS • Confidential • Page ${i} of ${pageCount}`, 14, doc.internal.pageSize.height - 10);
+    doc.text(`OneView • Confidential • Page ${i} of ${pageCount}`, 14, doc.internal.pageSize.height - 10);
   }
 
-  doc.save(`onebank-by-bank-${Date.now()}.pdf`);
+  doc.save(`oneview-by-bank-${Date.now()}.pdf`);
 }
 
 export function exportByBankExcel(bankBalances: any[]) {
@@ -638,7 +638,7 @@ export function exportByBankExcel(bankBalances: any[]) {
   ws["!cols"] = [{ wch: 20 }, { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 12 }];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Balance by Bank");
-  XLSX.writeFile(wb, `onebank-by-bank-${Date.now()}.xlsx`);
+  XLSX.writeFile(wb, `oneview-by-bank-${Date.now()}.xlsx`);
 }
 
 export async function exportByStatusPDF(
@@ -652,7 +652,7 @@ export async function exportByStatusPDF(
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
-  doc.text("OneBank TMS", 14, 14);
+  doc.text("OneView", 14, 14);
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.text("Payments by Status Report", 14, 22);
@@ -699,10 +699,10 @@ export async function exportByStatusPDF(
     doc.setPage(i);
     doc.setFontSize(8);
     doc.setTextColor(160, 174, 192);
-    doc.text(`OneBank TMS • Confidential • Page ${i} of ${pageCount}`, 14, doc.internal.pageSize.height - 10);
+    doc.text(`OneView • Confidential • Page ${i} of ${pageCount}`, 14, doc.internal.pageSize.height - 10);
   }
 
-  doc.save(`onebank-by-status-${Date.now()}.pdf`);
+  doc.save(`oneview-by-status-${Date.now()}.pdf`);
 }
 
 export function exportByStatusExcel(statusBreakdown: any[]) {
@@ -716,7 +716,7 @@ export function exportByStatusExcel(statusBreakdown: any[]) {
   ws["!cols"] = [{ wch: 15 }, { wch: 10 }, { wch: 15 }];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Payments by Status");
-  XLSX.writeFile(wb, `onebank-by-status-${Date.now()}.xlsx`);
+  XLSX.writeFile(wb, `oneview-by-status-${Date.now()}.xlsx`);
 }
 
 export async function exportByCategoryPDF(
@@ -730,7 +730,7 @@ export async function exportByCategoryPDF(
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
-  doc.text("OneBank TMS", 14, 14);
+  doc.text("OneView", 14, 14);
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.text("Payments by Category Report", 14, 22);
@@ -778,10 +778,10 @@ export async function exportByCategoryPDF(
     doc.setPage(i);
     doc.setFontSize(8);
     doc.setTextColor(160, 174, 192);
-    doc.text(`OneBank TMS • Confidential • Page ${i} of ${pageCount}`, 14, doc.internal.pageSize.height - 10);
+    doc.text(`OneView • Confidential • Page ${i} of ${pageCount}`, 14, doc.internal.pageSize.height - 10);
   }
 
-  doc.save(`onebank-by-category-${Date.now()}.pdf`);
+  doc.save(`oneview-by-category-${Date.now()}.pdf`);
 }
 
 export function exportByCategoryExcel(categoryBreakdown: any[]) {
@@ -796,7 +796,7 @@ export function exportByCategoryExcel(categoryBreakdown: any[]) {
   ws["!cols"] = [{ wch: 15 }, { wch: 18 }, { wch: 15 }, { wch: 15 }];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Payments by Category");
-  XLSX.writeFile(wb, `onebank-by-category-${Date.now()}.xlsx`);
+  XLSX.writeFile(wb, `oneview-by-category-${Date.now()}.xlsx`);
 }
 
 export async function exportCashFlowPDF(
@@ -810,7 +810,7 @@ export async function exportCashFlowPDF(
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
-  doc.text("OneBank TMS", 14, 14);
+  doc.text("OneView", 14, 14);
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.text("Cash Flow Report — Last 6 Months", 14, 22);
@@ -866,10 +866,10 @@ export async function exportCashFlowPDF(
     doc.setPage(i);
     doc.setFontSize(8);
     doc.setTextColor(160, 174, 192);
-    doc.text(`OneBank TMS • Confidential • Page ${i} of ${pageCount}`, 14, doc.internal.pageSize.height - 10);
+    doc.text(`OneView • Confidential • Page ${i} of ${pageCount}`, 14, doc.internal.pageSize.height - 10);
   }
 
-  doc.save(`onebank-cashflow-${Date.now()}.pdf`);
+  doc.save(`oneview-cashflow-${Date.now()}.pdf`);
 }
 
 export function exportCashFlowExcel(monthlyFlow: any[]) {
@@ -905,5 +905,5 @@ export function exportCashFlowExcel(monthlyFlow: any[]) {
   wsSummary["!cols"] = [{ wch: 20 }, { wch: 20 }];
   XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
 
-  XLSX.writeFile(wb, `onebank-cashflow-${Date.now()}.xlsx`);
+  XLSX.writeFile(wb, `oneview-cashflow-${Date.now()}.xlsx`);
 }

@@ -2,12 +2,12 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — OneBank TMS",
-  description: "OneBank TMS Privacy Policy — POPIA Compliant",
+  title: "Privacy Policy — OneView",
+  description: "OneView Privacy Policy — POPIA Compliant",
 };
 
 const EFFECTIVE_DATE  = "18 April 2026";
-const CONTACT_EMAIL   = "privacy@onebank.co.za";
+const CONTACT_EMAIL   = "privacy@oneview.co.za";
 const IO_REG_NUMBER   = "Pending registration with the Information Regulator (South Africa)";
 
 export default function PrivacyPage() {
@@ -18,9 +18,9 @@ export default function PrivacyPage() {
         <div className="max-w-4xl mx-auto px-6 py-5 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-[#D4A017] flex items-center justify-center font-bold text-[#1B4332] text-sm">
-              OB
+              OV
             </div>
-            <span className="font-bold text-lg">OneBank TMS</span>
+            <span className="font-bold text-lg">OneView</span>
           </Link>
           <Link
             href="/login"
@@ -42,7 +42,7 @@ export default function PrivacyPage() {
           {/* POPIA notice */}
           <div className="bg-[#F0FAF4] border border-[#27AE60]/20 rounded-xl px-5 py-4 mb-8">
             <p className="text-sm text-[#1A202C]">
-              <strong>POPIA Compliance:</strong> OneBank TMS is committed to protecting
+              <strong>POPIA Compliance:</strong> OneView is committed to protecting
               your personal information in accordance with the{" "}
               <strong>Protection of Personal Information Act, 2013 (POPIA)</strong> and the{" "}
               <strong>Electronic Communications and Transactions Act, 2002 (ECTA)</strong>.
@@ -54,7 +54,7 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-lg font-bold text-[#1A202C] mb-3">1. Who We Are (Responsible Party)</h2>
               <p>
-                OneBank South Africa (Pty) Ltd ("OneBank TMS", "we", "us") is the responsible party as defined
+                OneView (company registration in progress) ("OneView", "we", "us") is the responsible party as defined
                 under POPIA. We determine the purpose and means of processing your personal information.
               </p>
               <p className="mt-2">
@@ -130,6 +130,7 @@ export default function PrivacyPage() {
                 <li><strong>Neon (database):</strong> Encrypted PostgreSQL cloud database hosted in the EU (GDPR-compliant; covered by POPIA operator agreement).</li>
                 <li><strong>Resend (email):</strong> Transactional email delivery. We share only the recipient address and email content.</li>
                 <li><strong>Vercel (hosting):</strong> Application infrastructure. Processes request/response data in transit.</li>
+                <li><strong>Stitch (bank data, South Africa):</strong> Only when you connect a bank through Stitch. With your consent, Stitch retrieves account details, balances and up to three months of transactions from your bank and passes them to OneView. OneView never receives or stores your online-banking password. You can revoke this consent at any time in Settings → Bank Accounts.</li>
                 <li><strong>Law enforcement:</strong> Where required by South African law or court order.</li>
               </ul>
               <p className="mt-3">
@@ -193,7 +194,7 @@ export default function PrivacyPage() {
               <h2 className="text-lg font-bold text-[#1A202C] mb-3">10. Cross-Border Data Transfers</h2>
               <p>
                 Your data may be processed outside South Africa by our sub-processors (Neon EU, Vercel EU/US,
-                Resend US). We ensure adequate safeguards are in place through contractual protections
+                Resend US). Stitch processes bank data in South Africa. We ensure adequate safeguards are in place through contractual protections
                 consistent with POPIA section 72 requirements.
               </p>
             </section>
@@ -211,7 +212,7 @@ export default function PrivacyPage() {
               <h2 className="text-lg font-bold text-[#1A202C] mb-3">12. Contact</h2>
               <p>
                 For any privacy-related queries or to exercise your rights:<br />
-                <strong>Information Officer — OneBank South Africa (Pty) Ltd</strong><br />
+                <strong>Information Officer — OneView (company registration in progress)</strong><br />
                 Email: <a href={`mailto:${CONTACT_EMAIL}`} className="text-[#1B4332] underline">{CONTACT_EMAIL}</a>
               </p>
             </section>
@@ -220,7 +221,7 @@ export default function PrivacyPage() {
 
           {/* Bottom nav */}
           <div className="mt-10 pt-8 border-t border-[#E2E8F0] flex flex-col sm:flex-row gap-3 items-center justify-between text-sm text-[#718096]">
-            <p>© 2026 OneBank TMS (OneBank South Africa (Pty) Ltd) · POPIA Compliant</p>
+            <p>© 2026 OneView (OneView (company registration in progress)) · POPIA Compliant</p>
             <div className="flex gap-4">
               <Link href="/terms" className="hover:text-[#1B4332] transition-colors">Terms of Service</Link>
               <Link href="/login" className="hover:text-[#1B4332] transition-colors">Sign in</Link>

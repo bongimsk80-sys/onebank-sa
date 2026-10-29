@@ -66,54 +66,54 @@ async function main() {
 
   // Users — passwords sourced from env vars so they are never committed in plain text.
   // Set SEED_ADMIN_PASSWORD etc. in your .env before running `npx prisma db seed`.
-  const hashedAdmin     = await bcrypt.hash(process.env.SEED_ADMIN_PASSWORD     ?? "OneBankAdmin2026!",    12);
-  const hashedApprover  = await bcrypt.hash(process.env.SEED_APPROVER_PASSWORD  ?? "OneBankApprove2026!",  12);
-  const hashedInitiator = await bcrypt.hash(process.env.SEED_INITIATOR_PASSWORD ?? "OneBankInit2026!",     12);
-  const hashedReviewer  = await bcrypt.hash(process.env.SEED_REVIEWER_PASSWORD  ?? "OneBankReview2026!",   12);
-  const hashedExecutor  = await bcrypt.hash(process.env.SEED_EXECUTOR_PASSWORD  ?? "OneBankExec2026!",     12);
-  const hashedViewer    = await bcrypt.hash(process.env.SEED_VIEWER_PASSWORD    ?? "OneBankView2026!",     12);
+  const hashedAdmin     = await bcrypt.hash(process.env.SEED_ADMIN_PASSWORD     ?? "OneViewAdmin2026!",    12);
+  const hashedApprover  = await bcrypt.hash(process.env.SEED_APPROVER_PASSWORD  ?? "OneViewApprove2026!",  12);
+  const hashedInitiator = await bcrypt.hash(process.env.SEED_INITIATOR_PASSWORD ?? "OneViewInit2026!",     12);
+  const hashedReviewer  = await bcrypt.hash(process.env.SEED_REVIEWER_PASSWORD  ?? "OneViewReview2026!",   12);
+  const hashedExecutor  = await bcrypt.hash(process.env.SEED_EXECUTOR_PASSWORD  ?? "OneViewExec2026!",     12);
+  const hashedViewer    = await bcrypt.hash(process.env.SEED_VIEWER_PASSWORD    ?? "OneViewView2026!",     12);
 
   await prisma.user.deleteMany();
   await prisma.user.createMany({
     data: [
       {
         name: "Bonginkosi Masuku",
-        email: "admin@onebank.co.za",
+        email: "admin@oneview.co.za",
         password: hashedAdmin,
         role: "admin",
         isActive: true,
       },
       {
         name: "Sarah Dlamini",
-        email: "approver@onebank.co.za",
+        email: "approver@oneview.co.za",
         password: hashedApprover,
         role: "approver",
         isActive: true,
       },
       {
         name: "Thabo Mokoena",
-        email: "initiator@onebank.co.za",
+        email: "initiator@oneview.co.za",
         password: hashedInitiator,
         role: "initiator",
         isActive: true,
       },
       {
         name: "Lisa van der Merwe",
-        email: "reviewer@onebank.co.za",
+        email: "reviewer@oneview.co.za",
         password: hashedReviewer,
         role: "reviewer",
         isActive: true,
       },
       {
         name: "John Nkosi",
-        email: "executor@onebank.co.za",
+        email: "executor@oneview.co.za",
         password: hashedExecutor,
         role: "executor",
         isActive: true,
       },
       {
         name: "Nomsa Zulu",
-        email: "viewer@onebank.co.za",
+        email: "viewer@oneview.co.za",
         password: hashedViewer,
         role: "viewer",
         isActive: true,
@@ -522,7 +522,7 @@ async function main() {
       },
       {
         action: "Login Failed",
-        description: "Failed login attempt for admin@onebank.co.za",
+        description: "Failed login attempt for admin@oneview.co.za",
         userName: "Unknown",
         entityType: "auth",
         status: "failed",
@@ -599,6 +599,25 @@ async function main() {
       },
     ],
   });
+
+  // ── Tenant assignment ─────────────────────────────────────────────────────
+  // API routes now refuse requests from users without an organisation, so all
+  // demo rows are attached to one demo organisation.
+  const demoOrg = await prisma.organisation.upsert({
+    where:  { slug: "oneview-demo" },
+    update: {},
+    create: { name: "OneView Demo (Pty) Ltd", slug: "oneview-demo", plan: "beta" },
+  });
+  const unowned = { where: { organisationId: null }, data: { organisationId: demoOrg.id } };
+  await prisma.user.updateMany(unowned);
+  await prisma.bankAccount.updateMany(unowned);
+  await prisma.transaction.updateMany(unowned);
+  await prisma.payment.updateMany(unowned);
+  await prisma.beneficiary.updateMany(unowned);
+  await prisma.approvalWorkflow.updateMany(unowned);
+  await prisma.transferLimit.updateMany(unowned);
+  await prisma.activityLog.updateMany(unowned);
+  await prisma.notification.updateMany(unowned);
 
   console.log("✅ Seeding complete!");
 }

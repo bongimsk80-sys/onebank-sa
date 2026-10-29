@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, requireRole, getOrgId, resolveOrgId } from "@/lib/api-auth";
+import { requireAuth, requireRole, getOrgId, resolveOrgId, requireMfa } from "@/lib/api-auth";
 import { z } from "zod";
 import { recordRealTimeMetric } from "@/lib/metrics";
 
@@ -27,6 +27,7 @@ export async function GET(request: Request) {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
   const orgId = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
 
   try {
     const { searchParams } = new URL(request.url);
@@ -36,7 +37,7 @@ export async function GET(request: Request) {
     const skip     = (page - 1) * pageSize;
 
     const where = {
-      ...(orgId ? { organisationId: orgId } : {}),
+      organisationId: orgId,
       ...(status && status !== "all" ? { status } : {}),
     };
 
@@ -60,7 +61,10 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
+  const mfa = await requireMfa(session);
+  if (mfa) return mfa;
   const orgId  = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
   const userId = (session.user as any).id as string;
   const role   = (session.user as any).role as string;
   const userName = (session.user as any).name as string;
@@ -110,7 +114,7 @@ export async function POST(request: Request) {
         priority:      data.priority ?? false,
         isScheduled:   data.isScheduled ?? false,
         scheduledDate: data.scheduledDate ? new Date(data.scheduledDate) : null,
-        ...(orgId ? { organisationId: orgId } : {}),
+        organisationId: orgId,
       },
     });
 
@@ -124,7 +128,7 @@ export async function POST(request: Request) {
         entityType:  "payment",
         entityId:    payment.id,
         status:      "success",
-        ...(orgId ? { organisationId: orgId } : {}),
+        organisationId: orgId,
       },
     });
 
@@ -140,7 +144,10 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   const session = await requireRole(["admin", "approver"]);
   if (session instanceof NextResponse) return session;
+  const mfa = await requireMfa(session);
+  if (mfa) return mfa;
   const orgId    = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
   const userId   = (session.user as any).id as string;
   const userName = (session.user as any).name as string;
 
@@ -158,7 +165,7 @@ export async function PATCH(request: Request) {
 
     // H6: Prevent self-approval — fetch the payment to check who initiated it
     const existing = await prisma.payment.findFirst({
-      where: { id, ...(orgId ? { organisationId: orgId } : {}) },
+      where: { id, organisationId: orgId },
       select: { initiatorId: true, initiatedBy: true },
     });
     if (!existing) {
@@ -176,7 +183,7 @@ export async function PATCH(request: Request) {
     }
 
     const payment = await prisma.payment.update({
-      where: { id, ...(orgId ? { organisationId: orgId } : {}) },
+      where: { id, organisationId: orgId },
       data: {
         status,
         ...(rejectionReason
@@ -195,7 +202,7 @@ export async function PATCH(request: Request) {
         entityType:  "payment",
         entityId:    payment.id,
         status:      status === "rejected" ? "failed" : "success",
-        ...(orgId ? { organisationId: orgId } : {}),
+        organisationId: orgId,
       },
     });
 
@@ -228,7 +235,7 @@ export async function PATCH(request: Request) {
         data: {
           ...notificationMap[status],
           link: "/payments",
-          ...(orgId ? { organisationId: orgId } : {}),
+          organisationId: orgId,
         },
       });
     }
@@ -246,7 +253,7 @@ export async function PATCH(request: Request) {
           reference:     payment.reference,
           status:        "completed",
           date:          new Date(),
-          ...(orgId ? { organisationId: orgId } : {}),
+          organisationId: orgId,
         },
       });
     }

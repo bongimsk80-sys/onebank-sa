@@ -30,7 +30,7 @@ const settingsGroups = [
     items: [
       { icon: Globe,         label: "Language",            value: "English",   href: null,                          comingSoon: true  },
       { icon: LayoutDashboard, label: "Customize Overview", value: null,        href: "/settings/customize-overview", comingSoon: false },
-      { icon: Fingerprint,  label: "Face ID & Password",   value: null,        href: null,                          comingSoon: true  },
+      { icon: Fingerprint,  label: "Security & two-factor", value: null,       href: "/settings/security",           comingSoon: false },
       { icon: Bell,         label: "Notification Settings",value: null,        href: "/settings/notifications",      comingSoon: false },
       { icon: Sun,          label: "Display Settings",     value: "Light",     href: "/settings/display",            comingSoon: false },
       { icon: Sliders,      label: "Preferences",          value: null,        href: null,                          comingSoon: true  },
@@ -42,7 +42,7 @@ const settingsGroups = [
     items: [
       { icon: Building2,    label: "Bank Accounts",        value: null,        href: "/settings/bank-accounts",      comingSoon: false },
       { icon: Layers,       label: "Virtual Accounts",     value: null,        href: null,                          comingSoon: true  },
-      { icon: Wifi,         label: "Open Banking Services",value: null,        href: null,                          comingSoon: true  },
+      { icon: Wifi,         label: "Bank Connections",     value: "Stitch",    href: "/settings/bank-accounts",      comingSoon: false },
       { icon: ClipboardList,label: "Activity Log",         value: null,        href: "/settings/activity-log",       comingSoon: false },
     ],
   },
@@ -158,7 +158,7 @@ export default function SettingsPage() {
       <Card className="p-4 rounded-xl border border-[#E2E8F0] bg-white shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-bold text-[#1A202C]">OneBank TMS</p>
+            <p className="text-sm font-bold text-[#1A202C]">OneView</p>
             <p className="text-xs text-[#A0AEC0]">Version 1.0.0 (MVP)</p>
           </div>
           <span className="text-[10px] font-bold px-2 py-1 rounded-lg bg-[#F0FDF4] text-[#27AE60]">

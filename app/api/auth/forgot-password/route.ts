@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      const baseUrl  = process.env.NEXTAUTH_URL ?? "https://onebank-sa-iota.vercel.app";
+      const baseUrl  = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
       const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
       await sendPasswordResetEmail(user.email, user.name, resetUrl);
     }

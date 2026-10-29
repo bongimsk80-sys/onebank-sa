@@ -18,6 +18,7 @@ export async function GET(request: Request) {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
   const orgId = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
 
   try {
     const { searchParams } = new URL(request.url);
@@ -29,7 +30,7 @@ export async function GET(request: Request) {
     const skip       = (page - 1) * pageSize;
 
     const where = {
-      ...(orgId ? { organisationId: orgId } : {}),
+      organisationId: orgId,
       ...(search
         ? {
             OR: [
@@ -64,6 +65,7 @@ export async function POST(request: Request) {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
   const orgId = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
 
   try {
     const body = await request.json();
@@ -86,7 +88,7 @@ export async function POST(request: Request) {
         entityId: data.entityId,
         ipAddress: data.ipAddress ?? "127.0.0.1",
         status: data.status ?? "success",
-        ...(orgId ? { organisationId: orgId } : {}),
+        organisationId: orgId,
       },
     });
     return NextResponse.json({ log }, { status: 201 });

@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
 
   const adminId = (session.user as any).id as string;
   const orgId   = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
 
   const admin = await prisma.user.findUnique({
     where: { id: adminId },
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest) {
 
   // Scope target lookup to admin's org to prevent cross-org invite resend
   const target = await prisma.user.findFirst({
-    where: { id: userId, ...(orgId ? { organisationId: orgId } : {}) },
+    where: { id: userId, organisationId: orgId },
     select: { email: true, role: true, isVerified: true, name: true },
   });
 
@@ -46,9 +47,9 @@ export async function POST(req: NextRequest) {
     data:  { inviteToken: newToken, inviteTokenExpiry: inviteTokenExpiry() },
   });
 
-  const baseUrl    = process.env.NEXTAUTH_URL ?? "https://onebank-sa-iota.vercel.app";
+  const baseUrl    = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
   const inviteUrl  = `${baseUrl}/invite?token=${newToken}`;
-  const orgName    = admin?.organisation?.name ?? "OneBank TMS";
+  const orgName    = admin?.organisation?.name ?? "OneView";
   const inviterName = admin?.name ?? "Your admin";
 
   // Attempt to send email (may be blocked if domain not verified, but try anyway)

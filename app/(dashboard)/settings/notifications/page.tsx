@@ -40,14 +40,14 @@ const defaultChannels: NotificationChannel[] = [
   {
     id: "inApp",
     label: "In-App Notifications",
-    description: "Bell icon alerts within OneBank TMS",
+    description: "Bell icon alerts within OneView",
     icon: <Bell size={16} />,
     enabled: true,
   },
   {
     id: "email",
     label: "Email Notifications",
-    description: "Alerts sent to bonginkosi@onebank.co.za",
+    description: "Alerts sent to bonginkosi@oneview.co.za",
     icon: <Mail size={16} />,
     enabled: true,
   },
@@ -141,7 +141,7 @@ export default function NotificationSettingsPage() {
   const [channels, setChannels] = useState<NotificationChannel[]>(() => {
     if (typeof window === "undefined") return defaultChannels;
     try {
-      const saved = localStorage.getItem("onebank_notification_channels");
+      const saved = localStorage.getItem("oneview_notification_channels");
       if (!saved) return defaultChannels;
       const parsed = JSON.parse(saved);
       return defaultChannels.map((def) => ({
@@ -156,7 +156,7 @@ export default function NotificationSettingsPage() {
   const [settings, setSettings] = useState<NotificationSetting[]>(() => {
     if (typeof window === "undefined") return defaultSettings;
     try {
-      const saved = localStorage.getItem("onebank_notification_settings");
+      const saved = localStorage.getItem("oneview_notification_settings");
       if (!saved) return defaultSettings;
       const parsed = JSON.parse(saved);
       return defaultSettings.map((def) => ({
@@ -192,11 +192,11 @@ export default function NotificationSettingsPage() {
 
   function handleSave() {
     localStorage.setItem(
-      "onebank_notification_channels",
+      "oneview_notification_channels",
       JSON.stringify(channels.map(({ icon, ...rest }) => rest))
     );
     localStorage.setItem(
-      "onebank_notification_settings",
+      "oneview_notification_settings",
       JSON.stringify(settings.map(({ icon, ...rest }) => rest))
     );
     router.back();

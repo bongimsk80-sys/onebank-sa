@@ -6,9 +6,10 @@ export async function GET() {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
   const orgId = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
 
   try {
-    const orgFilter = orgId ? { organisationId: orgId } : {};
+    const orgFilter = { organisationId: orgId };
 
     const [accounts, payments, transactions] = await Promise.all([
       prisma.bankAccount.findMany({ where: { isActive: true, ...orgFilter } }),
