@@ -25,7 +25,8 @@ const Schema = z.object({
 
 function allowedOrigin(req: NextRequest): string | null {
   const origin = req.headers.get("origin");
-  const allowed = (process.env.MARKETING_ORIGINS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  // Default: the live marketing site. Override with MARKETING_ORIGINS (comma-separated).
+  const allowed = (process.env.MARKETING_ORIGINS ?? "https://onebank-sa.netlify.app").split(",").map((s) => s.trim()).filter(Boolean);
   return origin && allowed.includes(origin) ? origin : null;
 }
 
