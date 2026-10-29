@@ -140,3 +140,30 @@ export async function resolveOrgId(session: any): Promise<string | null> {
   });
   return user?.organisationId ?? null;
 }
+
+// ─── Step-up: two-factor authentication for privileged actions ────────────────
+
+const MFA_ROLES = ["admin", "approver", "executor"];
+
+/**
+ * Privileged roles must have an authenticator enrolled before they can approve
+ * or execute payments, change users, limits, workflows or bank connections.
+ * Checked against the database so a stale JWT cannot bypass it.
+ * Set REQUIRE_MFA=false only for local development.
+ *
+ *   const mfa = await requireMfa(session);
+ *   if (mfa) return mfa;
+ */
+export async function requireMfa(session: any): Promise<NextResponse | null> {
+  if (process.env.REQUIRE_MFA === "false") return null;
+  const role = (session?.user as any)?.role;
+  if (!MFA_ROLES.includes(role)) return null;
+  const userId = (session?.user as any)?.id as string | undefined;
+  if (!userId) return null;
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { mfaEnabledAt: true } });
+  if (user?.mfaEnabledAt) return null;
+  return NextResponse.json(
+    { error: "Set up two-factor authentication in Settings → Security before doing this.", mfaSetupRequired: true },
+    { status: 403 }
+  );
+}

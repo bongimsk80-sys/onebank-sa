@@ -20,10 +20,11 @@ export async function GET() {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
   const orgId = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
 
   try {
     const connections = await prisma.erpConnection.findMany({
-      where: { ...(orgId ? { organisationId: orgId } : {}) },
+      where: { organisationId: orgId },
       orderBy: { createdAt: "desc" },
     });
 
@@ -46,6 +47,7 @@ export async function POST(request: Request) {
   const session = await requireRole(["admin"]);
   if (session instanceof NextResponse) return session;
   const orgId = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
 
   try {
     const body = await request.json();
@@ -72,7 +74,7 @@ export async function POST(request: Request) {
         apiKey:       encryptedKey,
         apiUrl:       data.apiUrl,
         lastSyncedAt: new Date(),
-        ...(orgId ? { organisationId: orgId } : {}),
+        organisationId: orgId,
       },
     });
 
@@ -92,6 +94,7 @@ export async function PATCH(request: Request) {
   const session = await requireRole(["admin"]);
   if (session instanceof NextResponse) return session;
   const orgId = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
 
   try {
     const body = await request.json();
@@ -105,7 +108,7 @@ export async function PATCH(request: Request) {
 
     const data = result.data;
     const connection = await prisma.erpConnection.update({
-      where: { id: data.id, ...(orgId ? { organisationId: orgId } : {}) },
+      where: { id: data.id, organisationId: orgId },
       data: {
         status: data.status,
         lastSyncedAt: data.status === "connected" ? new Date() : undefined,

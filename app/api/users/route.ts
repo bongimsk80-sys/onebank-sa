@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, requireRole, getOrgId, resolveOrgId } from "@/lib/api-auth";
+import { requireAuth, requireRole, getOrgId, resolveOrgId, requireMfa } from "@/lib/api-auth";
 import { z } from "zod";
 
 const CreateUserSchema = z.object({
@@ -26,6 +26,7 @@ export async function GET(request: Request) {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
   const orgId = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
 
   try {
     const { searchParams } = new URL(request.url);
@@ -34,7 +35,7 @@ export async function GET(request: Request) {
     const skip     = (page - 1) * pageSize;
 
     const isAdmin = (session.user as any).role === "admin";
-    const where   = { ...(orgId ? { organisationId: orgId } : {}) };
+    const where   = { organisationId: orgId };
 
     const [users, total] = await Promise.all([
       prisma.user.findMany({
@@ -72,7 +73,10 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const session = await requireRole(["admin"]);
   if (session instanceof NextResponse) return session;
+  const mfa = await requireMfa(session);
+  if (mfa) return mfa;
   const orgId = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
 
   try {
     const body = await request.json();
@@ -111,7 +115,7 @@ export async function POST(request: Request) {
         // Admin users added this way are co-admins who also skip onboarding
         // (the org is already configured by the original admin).
         hasCompletedOnboarding: true,
-        ...(orgId ? { organisationId: orgId } : {}),
+        organisationId: orgId,
       },
       select: {
         id: true,
@@ -129,7 +133,7 @@ export async function POST(request: Request) {
         message: `${data.name} has been added as ${data.role}.`,
         type: "info",
         link: "/settings/users",
-        ...(orgId ? { organisationId: orgId } : {}),
+        organisationId: orgId,
       },
     });
 
@@ -145,7 +149,10 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   const session = await requireRole(["admin"]);
   if (session instanceof NextResponse) return session;
+  const mfa = await requireMfa(session);
+  if (mfa) return mfa;
   const orgId = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
 
   try {
     const body = await request.json();
@@ -160,7 +167,7 @@ export async function PATCH(request: Request) {
     const data = result.data;
 
     const user = await prisma.user.update({
-      where: { id: data.id, ...(orgId ? { organisationId: orgId } : {}) },
+      where: { id: data.id, organisationId: orgId },
       data: {
         ...(data.role ? { role: data.role } : {}),
         ...(typeof data.isActive === "boolean" ? { isActive: data.isActive } : {}),
@@ -191,7 +198,10 @@ export async function PATCH(request: Request) {
 export async function DELETE(request: Request) {
   const session = await requireRole(["admin"]);
   if (session instanceof NextResponse) return session;
+  const mfa = await requireMfa(session);
+  if (mfa) return mfa;
   const orgId = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
 
   try {
     const body = await request.json();
@@ -204,7 +214,7 @@ export async function DELETE(request: Request) {
     }
 
     await prisma.user.delete({
-      where: { id: result.data.id, ...(orgId ? { organisationId: orgId } : {}) },
+      where: { id: result.data.id, organisationId: orgId },
     });
     return NextResponse.json({ success: true });
   } catch (error) {

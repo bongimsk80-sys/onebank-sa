@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, requireRole, getOrgId, resolveOrgId } from "@/lib/api-auth";
+import { requireAuth, requireRole, getOrgId, resolveOrgId, requireMfa } from "@/lib/api-auth";
 import { z } from "zod";
 
 const CreateBeneficiarySchema = z.object({
@@ -22,6 +22,7 @@ export async function GET(request: Request) {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
   const orgId = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
 
   try {
     const { searchParams } = new URL(request.url);
@@ -32,7 +33,7 @@ export async function GET(request: Request) {
     const skip     = (page - 1) * pageSize;
 
     const where = {
-      ...(orgId ? { organisationId: orgId } : {}),
+      organisationId: orgId,
       ...(status !== "all" ? { status } : {}),
       ...(type && type !== "all" ? { type } : {}),
     };
@@ -57,7 +58,10 @@ export async function GET(request: Request) {
 export async function DELETE(request: Request) {
   const session = await requireRole(["admin"]);
   if (session instanceof NextResponse) return session;
+  const mfa = await requireMfa(session);
+  if (mfa) return mfa;
   const orgId = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
 
   try {
     const body = await request.json();
@@ -70,7 +74,7 @@ export async function DELETE(request: Request) {
     }
 
     await prisma.beneficiary.delete({
-      where: { id: result.data.id, ...(orgId ? { organisationId: orgId } : {}) },
+      where: { id: result.data.id, organisationId: orgId },
     });
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -84,7 +88,10 @@ export async function DELETE(request: Request) {
 export async function POST(request: Request) {
   const session = await requireRole(["admin"]);
   if (session instanceof NextResponse) return session;
+  const mfa = await requireMfa(session);
+  if (mfa) return mfa;
   const orgId = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
 
   try {
     const body = await request.json();
@@ -109,7 +116,7 @@ export async function POST(request: Request) {
         totalPayments: 0,
         lastPayment: 0,
         tag: data.tag ?? "General",
-        ...(orgId ? { organisationId: orgId } : {}),
+        organisationId: orgId,
       },
     });
     return NextResponse.json({ beneficiary }, { status: 201 });

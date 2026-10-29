@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
     });
 
     // ── 10. Send verification email (fire-and-forget — never block 201) ────────
-    const baseUrl = process.env.NEXTAUTH_URL ?? "https://onebank-sa-iota.vercel.app";
+    const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
     const verificationUrl = `${baseUrl}/verify-email?token=${verificationToken}`;
 
     sendVerificationEmail(user.email, user.name, verificationUrl).catch((err) => {

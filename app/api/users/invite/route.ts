@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/api-auth";
+import { requireRole, requireMfa } from "@/lib/api-auth";
 import { generateInviteToken } from "@/lib/tokens";
 import { sendTeamInviteEmail } from "@/lib/email";
 
@@ -8,6 +8,8 @@ import { sendTeamInviteEmail } from "@/lib/email";
 export async function POST(req: NextRequest) {
   const session = await requireRole(["admin"]);
   if (session instanceof NextResponse) return session;
+  const mfa = await requireMfa(session);
+  if (mfa) return mfa;
 
   try {
     const body = await req.json();
@@ -43,7 +45,7 @@ export async function POST(req: NextRequest) {
     });
 
     const organisationId = admin?.organisationId ?? null;
-    const orgName        = admin?.organisation?.name ?? "OneBank TMS";
+    const orgName        = admin?.organisation?.name ?? "OneView";
     const inviterName    = admin?.name ?? "Your admin";
 
     // ── Create placeholder user record ─────────────────────────────────────
@@ -64,7 +66,7 @@ export async function POST(req: NextRequest) {
     });
 
     // ── Send invite email ──────────────────────────────────────────────────
-    const baseUrl   = process.env.NEXTAUTH_URL ?? "https://onebank-sa-iota.vercel.app";
+    const baseUrl   = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
     const inviteUrl = `${baseUrl}/invite?token=${inviteToken}`;
     await sendTeamInviteEmail(trimmedEmail, inviterName, orgName, role as string, inviteUrl);
 

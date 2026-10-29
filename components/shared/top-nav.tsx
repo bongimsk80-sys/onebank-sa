@@ -20,7 +20,7 @@ const pageTitles: Record<string, string> = {
 
 export default function TopNav() {
   const pathname = usePathname();
-  const title = pageTitles[pathname] ?? "OneBank TMS";
+  const title = pageTitles[pathname] ?? "OneView";
   const { unreadCount, refetch } = useNotifications();
   const [showNotifications, setShowNotifications] = useState(false);
 
@@ -35,7 +35,7 @@ export default function TopNav() {
       {/* Mobile logo + Page title */}
       <div className="flex items-center gap-3">
         <div className="w-7 h-7 rounded-full bg-[#1B4332] flex items-center justify-center text-white font-bold text-xs lg:hidden">
-          OB
+          OV
         </div>
         <h1
           className="text-base lg:text-lg font-bold"

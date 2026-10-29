@@ -101,16 +101,20 @@ export default function MetricsPage() {
   return (
     <div className="min-h-screen bg-[#0F1117] text-white">
 
+      <div className="bg-[#3D2F00] text-[#F5D76E] text-xs text-center px-4 py-2">
+        Beta data: payments on OneView are simulated during the beta. These figures are platform test activity, not money moved.
+      </div>
+
       {/* Header */}
       <div className="border-b border-[#1A2D3D] bg-[#0D1B13]">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 min-w-[40px] rounded-full bg-[#D4A017] flex items-center justify-center font-bold text-[#1B4332] text-sm flex-shrink-0">
-                OB
+                OV
               </div>
               <div>
-                <p className="font-bold text-lg text-white">OneBank TMS</p>
+                <p className="font-bold text-lg text-white">OneView</p>
                 <p className="text-xs text-[#A0AEC0]">Platform Analytics Dashboard</p>
               </div>
             </div>
@@ -400,7 +404,7 @@ export default function MetricsPage() {
         {/* Footer */}
         <div className="text-center py-6 border-t border-[#2D3748]">
           <p className="text-xs text-[#718096]">
-            OneBank TMS © 2026 — Platform Analytics Dashboard
+            OneView © 2026 — Platform Analytics Dashboard
           </p>
           <p className="text-xs text-[#4A5568] mt-1">
             Data refreshes every 60 seconds • All values in South African Rand (ZAR)

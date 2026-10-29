@@ -287,10 +287,10 @@ export default function OnboardingPage() {
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-[#1B4332] flex items-center justify-center font-bold text-white text-sm flex-shrink-0">
-              OB
+              OV
             </div>
             <div>
-              <p className="font-bold text-sm text-[#1A202C] leading-tight">OneBank TMS</p>
+              <p className="font-bold text-sm text-[#1A202C] leading-tight">OneView</p>
               <p className="text-[10px] text-[#A0AEC0]">Treasury Management</p>
             </div>
           </div>
@@ -561,7 +561,7 @@ export default function OnboardingPage() {
                     <p className="text-xs font-semibold text-[#1A202C] mb-1">What&apos;s next</p>
                     <ul className="space-y-0.5">
                       {[
-                        "View real-time cash positions on the dashboard",
+                        "View consolidated cash positions on the dashboard",
                         "Create your first payment and approval workflow",
                         "Connect an ERP system (Sage, SAP, Oracle)",
                       ].map((item) => (

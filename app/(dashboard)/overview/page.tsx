@@ -51,7 +51,7 @@ export default function OverviewPage() {
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("onebank_overview_widgets");
+      const saved = localStorage.getItem("oneview_overview_widgets");
       if (saved) {
         const parsed = JSON.parse(saved);
         const visible = parsed

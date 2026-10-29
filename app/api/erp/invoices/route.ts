@@ -16,10 +16,11 @@ export async function GET() {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
   const orgId = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
 
   try {
     const invoices = await prisma.erpInvoice.findMany({
-      where: { ...(orgId ? { organisationId: orgId } : {}) },
+      where: { organisationId: orgId },
       orderBy: { dueDate: "asc" },
     });
     return NextResponse.json({ invoices });
@@ -35,6 +36,7 @@ export async function POST(request: Request) {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
   const orgId = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
 
   try {
     const body = await request.json();
@@ -56,7 +58,7 @@ export async function POST(request: Request) {
         amount:        data.amount,
         dueDate:       new Date(data.dueDate),
         status:        "pending",
-        ...(orgId ? { organisationId: orgId } : {}),
+        organisationId: orgId,
       },
     });
 
@@ -73,7 +75,7 @@ export async function POST(request: Request) {
           description:  `Auto-payment from ${data.erpProvider} invoice ${data.invoiceNumber}`,
           priority:     false,
           isScheduled:  false,
-          ...(orgId ? { organisationId: orgId } : {}),
+          organisationId: orgId,
         },
       });
 

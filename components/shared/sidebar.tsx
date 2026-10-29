@@ -56,7 +56,7 @@ export default function Sidebar() {
 
   const initials = name
     ? name.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase()
-    : "OB";
+    : "OV";
 
   return (
     <aside className="hidden lg:flex flex-col fixed left-0 top-0 h-full w-64 bg-[#1B4332] text-white dark:bg-[#1B4332] dark:text-white z-40">
@@ -64,10 +64,10 @@ export default function Sidebar() {
       <div className="p-6 border-b border-[#2D6A4F] dark:border-[#2D6A4F]">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-[#D4A017] flex items-center justify-center font-bold text-[#1B4332] text-sm">
-            OB
+            OV
           </div>
           <div>
-            <p className="font-bold text-base leading-tight">OneBank TMS</p>
+            <p className="font-bold text-base leading-tight">OneView</p>
             <p className="text-xs text-[#A0C4B1]">Treasury Management</p>
           </div>
         </div>

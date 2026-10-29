@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireRole, getOrgId, resolveOrgId } from "@/lib/api-auth";
+import { requireRole, getOrgId, resolveOrgId, requireMfa } from "@/lib/api-auth";
 import { z } from "zod";
 
 const ParamsSchema = z.object({
@@ -18,7 +18,10 @@ export async function PATCH(
 ) {
   const session = await requireRole(["admin"]);
   if (session instanceof NextResponse) return session;
+  const mfa = await requireMfa(session);
+  if (mfa) return mfa;
   const orgId = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
 
   try {
     const parsedParams = ParamsSchema.safeParse(await params);
@@ -41,7 +44,7 @@ export async function PATCH(
     const data = result.data;
 
     const account = await prisma.bankAccount.update({
-      where: { id, ...(orgId ? { organisationId: orgId } : {}) },
+      where: { id, organisationId: orgId },
       data: {
         ...(typeof data.isActive === "boolean" ? { isActive: data.isActive } : {}),
         ...(data.balance !== undefined ? { balance: data.balance } : {}),
@@ -63,7 +66,10 @@ export async function DELETE(
 ) {
   const session = await requireRole(["admin"]);
   if (session instanceof NextResponse) return session;
+  const mfa = await requireMfa(session);
+  if (mfa) return mfa;
   const orgId = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
 
   try {
     const parsedParams = ParamsSchema.safeParse(await params);
@@ -75,7 +81,7 @@ export async function DELETE(
     }
     const { id } = parsedParams.data;
     await prisma.bankAccount.delete({
-      where: { id, ...(orgId ? { organisationId: orgId } : {}) },
+      where: { id, organisationId: orgId },
     });
     return NextResponse.json({ success: true });
   } catch (error) {

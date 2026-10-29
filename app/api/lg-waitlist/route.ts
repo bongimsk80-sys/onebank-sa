@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Notify the OneBank TMS team (fire-and-forget)
+    // Notify the OneView team (fire-and-forget)
     sendLgWaitlistNotification({
       userName:  user.name,
       userEmail: user.email,

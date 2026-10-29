@@ -115,7 +115,7 @@ export default function CustomizeOverviewPage() {
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("onebank_overview_widgets");
+      const saved = localStorage.getItem("oneview_overview_widgets");
       if (saved) {
         const parsed = JSON.parse(saved);
         setWidgets(
@@ -177,7 +177,7 @@ export default function CustomizeOverviewPage() {
 
   function handleSave() {
     localStorage.setItem(
-      "onebank_overview_widgets",
+      "oneview_overview_widgets",
       JSON.stringify(widgets.map(({ id, visible }) => ({ id, visible })))
     );
     setSaved(true);

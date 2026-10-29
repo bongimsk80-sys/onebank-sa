@@ -6,6 +6,7 @@ export async function GET(request: Request) {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
   const orgId = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
 
   try {
     const { searchParams } = new URL(request.url);
@@ -16,7 +17,7 @@ export async function GET(request: Request) {
     const skip     = (page - 1) * pageSize;
 
     const where = {
-      ...(orgId ? { organisationId: orgId } : {}),
+      organisationId: orgId,
       ...(bank && bank !== "all" ? { bank } : {}),
       ...(search
         ? {

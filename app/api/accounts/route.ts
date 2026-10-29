@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, requireRole, resolveOrgId } from "@/lib/api-auth";
+import { requireAuth, requireRole, resolveOrgId, requireMfa } from "@/lib/api-auth";
 import { z } from "zod";
 
 // ── Plan-based account limits ───────────────────────────────────────────────
@@ -27,11 +27,12 @@ export async function GET() {
   const session = await requireAuth();
   if (session instanceof NextResponse) return session;
   const orgId = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
 
   try {
     const [accounts, org] = await Promise.all([
       prisma.bankAccount.findMany({
-        where:   { ...(orgId ? { organisationId: orgId } : {}) },
+        where:   { organisationId: orgId },
         orderBy: { bank: "asc" },
       }),
       orgId
@@ -52,7 +53,10 @@ export async function GET() {
 export async function POST(request: Request) {
   const session = await requireRole(["admin"]);
   if (session instanceof NextResponse) return session;
+  const mfa = await requireMfa(session);
+  if (mfa) return mfa;
   const orgId = await resolveOrgId(session);
+  if (!orgId) return NextResponse.json({ error: "No organisation associated with your account." }, { status: 403 });
 
   try {
     const body   = await request.json();
@@ -98,7 +102,7 @@ export async function POST(request: Request) {
           currency:      "ZAR",
           color:         data.color,
           isActive:      true,
-          ...(orgId ? { organisationId: orgId } : {}),
+          organisationId: orgId,
         },
       });
       return NextResponse.json({ account }, { status: 201 });

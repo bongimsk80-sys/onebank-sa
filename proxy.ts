@@ -23,6 +23,8 @@ const PROTECTED_PATHS = [
   "/settings",
   "/feedback",
   "/onboarding",
+  "/metrics",
+  "/lg-applications",
 ];
 
 export default auth((req) => {
@@ -71,6 +73,8 @@ export const config = {
     "/settings/profile",
     "/feedback",
     "/onboarding",
+    "/metrics",
+    "/lg-applications",
     // Public auth-flow routes (so logged-in users are redirected away)
     "/login",
     "/register",

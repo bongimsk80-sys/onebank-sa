@@ -15,7 +15,7 @@ const perks = [
     desc: "Build approval workflows tailored to your organisation's risk policy.",
   },
   {
-    title: "Real-time analytics & ERP sync",
+    title: "Consolidated analytics & exports",
     desc: "Live cash flow reporting with Sage, SAP, Oracle, Xero and more.",
   },
 ];
@@ -124,10 +124,10 @@ export default function RegisterPage() {
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-12 h-12 rounded-full bg-[#D4A017] flex items-center justify-center font-bold text-[#1B4332] text-lg flex-shrink-0">
-              OB
+              OV
             </div>
             <div>
-              <p className="font-bold text-2xl text-white leading-tight">OneBank TMS</p>
+              <p className="font-bold text-2xl text-white leading-tight">OneView</p>
               <p className="text-xs text-[#A0C4B1]">Treasury Management</p>
             </div>
           </div>
@@ -141,7 +141,7 @@ export default function RegisterPage() {
               <span className="text-[#D4A017]"> treasury smarter</span>
             </h1>
             <p className="text-[#A0C4B1] text-base leading-relaxed">
-              Join South African businesses already using OneBank TMS to streamline
+              Join South African businesses already using OneView to streamline
               payments, approvals, and cash flow — all in one place.
             </p>
           </div>
@@ -189,7 +189,7 @@ export default function RegisterPage() {
         {/* Footer */}
         <div className="relative z-10">
           <p className="text-xs text-[#718096]">
-            © 2026 OneBank TMS. All rights reserved.
+            © 2026 OneView. All rights reserved.
           </p>
           <p className="text-xs text-[#718096] mt-1">
             POPIA Compliant • SARB Regulated • 256-bit Encrypted
@@ -203,10 +203,10 @@ export default function RegisterPage() {
         {/* Mobile logo */}
         <div className="flex items-center gap-3 mb-8 lg:hidden">
           <div className="w-10 h-10 min-w-[40px] rounded-full bg-[#1B4332] flex items-center justify-center text-white font-bold flex-shrink-0">
-            OB
+            OV
           </div>
           <div>
-            <p className="font-bold text-lg text-[#1A202C]">OneBank TMS</p>
+            <p className="font-bold text-lg text-[#1A202C]">OneView</p>
             <p className="text-xs text-[#718096]">South Africa</p>
           </div>
         </div>
@@ -219,7 +219,7 @@ export default function RegisterPage() {
               Create your account
             </h2>
             <p className="text-sm text-[#718096] mt-1">
-              Set up your organisation on OneBank TMS — free during beta.
+              Set up your organisation on OneView — free during beta.
             </p>
           </div>
 
@@ -447,7 +447,7 @@ export default function RegisterPage() {
 
           {/* Mobile footer */}
           <p className="text-xs text-[#A0AEC0] mt-8 text-center lg:hidden">
-            © 2026 OneBank TMS. All rights reserved.
+            © 2026 OneView. All rights reserved.
           </p>
         </div>
       </div>
