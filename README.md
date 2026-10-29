@@ -38,6 +38,23 @@ Connect banks in **Settings → Bank Accounts → Connect a bank**. Each connect
 - **Audit trail:** `ActivityLog` is append-only and hash-chained per organisation (`lib/prisma.ts`); verify with `GET /api/activity-log/verify`.
 - **Website enquiries:** `POST /api/enquiries` accepts only origins in `MARKETING_ORIGINS`, requires privacy consent and has a honeypot and throttle.
 
+## Deploying
+
+Vercel runs `npm run vercel-build`. On **production** builds it applies pending migrations (`prisma migrate deploy`) before `next build`; preview builds never touch the database. If a migration fails, the build fails and the previous deployment keeps serving.
+
+If production was originally created with `prisma db push` (no `_prisma_migrations` table), baseline it once before the first deploy:
+
+```bash
+npx prisma migrate resolve --applied 20260401190631_init_postgresql
+npx prisma migrate resolve --applied 20260408203614_add_platform_metrics
+npx prisma migrate resolve --applied 20260415161717_add_multitenancy
+npx prisma migrate resolve --applied 20260415173505_add_onboarding_flag
+```
+
+The repair and OneView migrations are then applied by the build; both are safe on a database that already has some of the objects.
+
+Production environment variables to add before deploying: `MARKETING_ORIGINS` (the website URL), `REQUIRE_MFA=true`, and the `STITCH_*` values once Stitch issues them. Admins, approvers and executors must enrol an authenticator under Settings → Security before approving payments.
+
 ## Known gaps (next steps)
 
 - Money is stored as `Float`; migrate to integer cents.

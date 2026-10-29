@@ -10,7 +10,8 @@
     "postinstall": "prisma generate",
     "db:seed": "prisma db seed",
     "typecheck": "tsc --noEmit",
-    "test": "tsx tests/stitch-connector.test.mts"
+    "test": "tsx tests/stitch-connector.test.mts",
+    "vercel-build": "prisma generate && if [ \"$VERCEL_ENV\" = \"production\" ]; then prisma migrate deploy; else echo \"Skipping migrations outside production\"; fi && next build"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
