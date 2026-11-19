@@ -19,7 +19,8 @@ export async function POST(req: NextRequest) {
   const sql = neon(dbUrl);
   const results: string[] = [];
 
-  const run = (stmt: string) => sql(stmt);
+  // neon() only accepts template literals; .query() accepts plain strings.
+  const run = (stmt: string) => sql.query(stmt);
 
   try {
     // ── Migration 1: repair_schema_drift ──────────────────────────────────────
