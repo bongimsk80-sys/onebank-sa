@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+// Run in London to reach Neon eu-west-2 compute via TCP.
+export const preferredRegion = "lhr1";
+
 // Protected by PLATFORM_METRICS_TOKEN. Applies the two pending migrations
 // via the app's singleton PrismaClient (same connection every other route uses).
 // All statements are idempotent — safe to call more than once.
