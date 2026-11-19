@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const dbUrl = process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL;
-    const output = execSync("npx prisma migrate deploy", {
+    const output = execSync("node_modules/.bin/prisma migrate deploy", {
       env: { ...process.env, DATABASE_URL: dbUrl },
       encoding: "utf8",
       timeout: 30000,
