@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const dbUrl = process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL;
+  const dbUrl = process.env.DATABASE_URL;
   if (!dbUrl) {
     return NextResponse.json({ error: "No DATABASE_URL" }, { status: 500 });
   }
