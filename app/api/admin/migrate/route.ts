@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { neon } from "@neondatabase/serverless";
 
 // Protected by PLATFORM_METRICS_TOKEN. Applies the two pending migrations
-// by executing their SQL via Prisma's $executeRawUnsafe — all statements
-// are idempotent so this endpoint is safe to call more than once.
+// via the Neon HTTP driver (works from any IP, unlike TCP port 5432).
+// All statements are idempotent — safe to call more than once.
 export async function POST(req: NextRequest) {
   const auth = req.headers.get("authorization");
   const token = process.env.PLATFORM_METRICS_TOKEN;
@@ -11,12 +11,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const db = new PrismaClient({
-    datasources: { db: { url: process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL } },
-  });
+  const dbUrl = process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL;
+  if (!dbUrl) {
+    return NextResponse.json({ error: "No DATABASE_URL" }, { status: 500 });
+  }
+
+  const sql = neon(dbUrl);
   const results: string[] = [];
 
-  const run = async (sql: string) => { await db.$executeRawUnsafe(sql); };
+  const run = (stmt: string) => sql(stmt);
 
   try {
     // ── Migration 1: repair_schema_drift ──────────────────────────────────────
@@ -155,7 +158,5 @@ export async function POST(req: NextRequest) {
   } catch (err: unknown) {
     const e = err as { message?: string };
     return NextResponse.json({ ok: false, results, error: e.message }, { status: 500 });
-  } finally {
-    await db.$disconnect();
   }
 }
