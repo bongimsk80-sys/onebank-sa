@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 
 // Protected by PLATFORM_METRICS_TOKEN. Applies the two pending migrations
-// via PrismaClient TCP (same connection the app uses — works from Vercel).
+// via the app's singleton PrismaClient (same connection every other route uses).
 // All statements are idempotent — safe to call more than once.
 export async function POST(req: NextRequest) {
   const auth = req.headers.get("authorization");
@@ -11,12 +11,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const dbUrl = process.env.DATABASE_URL;
-  if (!dbUrl) {
-    return NextResponse.json({ error: "No DATABASE_URL" }, { status: 500 });
-  }
-
-  const prisma = new PrismaClient({ datasources: { db: { url: dbUrl } } });
   const results: string[] = [];
 
   const run = (stmt: string) => prisma.$executeRawUnsafe(stmt);
@@ -158,7 +152,5 @@ export async function POST(req: NextRequest) {
   } catch (err: unknown) {
     const e = err as { message?: string };
     return NextResponse.json({ ok: false, results, error: e.message }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }
