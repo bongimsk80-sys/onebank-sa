@@ -11,7 +11,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const dbUrl = process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL;
+  // Use the pooled URL — the neon HTTP driver bypasses PgBouncer restrictions
+  // so DDL works, and the pooled hostname is what Neon allows from Vercel IPs.
+  const dbUrl = process.env.DATABASE_URL;
   if (!dbUrl) {
     return NextResponse.json({ error: "No DATABASE_URL" }, { status: 500 });
   }
