@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "app/api/admin/migrate/route.ts": {
+      "regions": ["lhr1"]
+    }
+  }
+}
