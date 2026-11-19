@@ -11,7 +11,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const db = new PrismaClient();
+  const db = new PrismaClient({
+    datasources: { db: { url: process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL } },
+  });
   const results: string[] = [];
 
   const run = async (sql: string) => { await db.$executeRawUnsafe(sql); };
